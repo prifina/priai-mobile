@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
+import {SafeAreaView, StyleSheet, View} from 'react-native';
 
 // import {Auth} from 'aws-amplify';
 
@@ -25,9 +26,18 @@ const MainNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? <AppNavigator /> : <AuthNavigator />}
+      <SafeAreaView style={styles.safeArea}>
+        {user ? <AppNavigator /> : <AuthNavigator />}
+      </SafeAreaView>
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+});
 
 export default MainNavigator;

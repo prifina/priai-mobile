@@ -1,53 +1,58 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import ChatScreen from '../modules/ChatScreen';
+import ProfileScreen from '../modules/ProfileScreen';
+import SubscriptionsScreen from '../modules/SubscriptionsScreen';
 
-import ChatScreen from '../screens/ChatScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import AboutScreen from '../screens/AboutScreen';
-import SubscriptionsScreen from '../screens/SubscriptionsScreen';
+import AppHeader from '../components/AppHeader';
+
+import AboutNavigator from '../modules/about/AboutNavigator';
+
+import ChatLogo from '../assets/message-chat-circle.svg';
+import StarLogo from '../assets/star.svg';
+import UserLogo from '../assets/user-circle.svg';
+import InfoLogo from '../assets/info-circle.svg';
 
 const Tab = createBottomTabNavigator();
 
 const AppNavigator = () => {
   return (
-    <Tab.Navigator screenOptions={{}}>
+    <Tab.Navigator
+      screenOptions={({navigation}) => ({
+        headerTitle: () => {},
+        headerLeft: props => <AppHeader {...props} navigation={navigation} />,
+        tabBarLabel: () => {},
+      })}>
       <Tab.Screen
         name="About"
-        component={AboutScreen}
+        component={AboutNavigator}
         options={{
           tabBarIcon: ({focused, color, size}) => (
-            <Icon name="info" size={size} color={color} />
+            // <Icon name="info" size={size} color={color} />
+            <InfoLogo />
           ),
         }}
       />
       <Tab.Screen
         name="Chat"
         component={ChatScreen}
-        options={{
-          tabBarIcon: ({focused, color, size}) => (
-            <Icon name="comments" size={size} color={color} />
-          ),
-        }}
+        options={({navigation}) => ({
+          tabBarIcon: ({focused, color, size}) => <ChatLogo />,
+        })}
       />
-
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({focused, color, size}) => (
-            <Icon name="user" size={size} color={color} />
-          ),
+          tabBarIcon: ({focused, color, size}) => <UserLogo />,
         }}
       />
       <Tab.Screen
         name="Subscriptions"
         component={SubscriptionsScreen}
         options={{
-          tabBarIcon: ({focused, color, size}) => (
-            <Icon name="upload" size={size} color={color} />
-          ),
+          tabBarIcon: ({focused, color, size}) => <StarLogo />,
         }}
       />
     </Tab.Navigator>
