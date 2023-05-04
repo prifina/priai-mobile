@@ -24,7 +24,7 @@ import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';
 
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 const openai = new OpenAIApi(configuration);
@@ -52,7 +52,7 @@ const ChatScreen = ({navigation}) => {
   const [prompt, setPrompt] = useState('');
   const [apiResponse, setApiResponse] = useState('');
   const [conversation, setConversation] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState();
 
   const [stepCount, setStepCount] = useState([]);
 
@@ -142,7 +142,7 @@ const ChatScreen = ({navigation}) => {
     } catch (e) {
       console.log(e);
       setApiResponse('Something went wrong. Please try again.');
-      setError(e);
+      // setError(e);
       setIsLoading(false);
     }
     setPrompt('');
@@ -184,7 +184,6 @@ const ChatScreen = ({navigation}) => {
           // onSubmitEditing={() => setPrompt()}
           placeholder="How many steps did I take today?"
           placeholderTextColor="#aaa"
-
         />
 
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
