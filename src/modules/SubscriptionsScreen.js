@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {View, Text, Button} from 'react-native';
+import ContentWrapper from '../components/ContentWrapper';
 
 const SubscriptionsScreen = () => {
   const logout = async () => {
@@ -14,9 +15,9 @@ const SubscriptionsScreen = () => {
   };
 
   return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Button title="Logout" onPress={logout} />
-    </View>
+    <ContentWrapper title="Upgrade">
+      {/* <Button title="Logout" onPress={logout} /> */}
+    </ContentWrapper>
   );
 };
 

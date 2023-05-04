@@ -4,19 +4,12 @@ import ContentWrapper from '../../components/ContentWrapper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import SlackLogo from '../../assets/slack-logo.svg';
+import HandleDataIcon from '../../assets/button-icons/handle-data-button-icon.svg';
+import PrifinaButtonIcon from '../../assets/button-icons/prifina-button-icon.svg';
+import PrivacyButtonIcon from '../../assets/button-icons/privacy-button-icon.svg';
+import TermsButtonIcon from '../../assets/button-icons/terms-button-icon.svg';
 
 const AboutScreen = ({navigation}) => {
-  const logout = async () => {
-    // try {
-    //   await Auth.signOut();
-    //   // Perform any additional actions upon successful logout
-    //   console.log('successful logout');
-    // } catch (error) {
-    //   console.log('Error signing out: ', error);
-    // }
-    console.log('Error signing out: ', error);
-  };
-
   return (
     <ContentWrapper title="About this app">
       <View style={styles.badgeContainer}>
@@ -32,7 +25,7 @@ const AboutScreen = ({navigation}) => {
         extends Chat-GPT’s capabilities by integrating real data from your
         applications and devices.
       </Text>
-      <View style={styles.communityContainer}>
+      <TouchableOpacity style={styles.communityContainer}>
         <View style={styles.innerCommunityContainer}>
           <SlackLogo />
           <View style={{marginHorizontal: 16}}>
@@ -45,19 +38,51 @@ const AboutScreen = ({navigation}) => {
           </View>
           <Icon name="chevron-right" size={12} color="#EBEBF5" />
         </View>
-      </View>
+      </TouchableOpacity>
       <View>
-        <TouchableOpacity onPress={() => navigation.navigate('AboutPrifina')}>
-          <Text>Open Modal Screen 1</Text>
+        <TouchableOpacity
+          style={styles.customButton}
+          onPress={() => navigation.navigate('AboutPrifina')}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <PrifinaButtonIcon />
+            <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
+              About Prifina
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={12} color="gray" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('DataHandle')}>
-          <Text>Open Modal Screen 2</Text>
+        <TouchableOpacity
+          style={styles.customButton}
+          onPress={() => navigation.navigate('DataHandle')}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <HandleDataIcon />
+            <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
+              How we handle your data
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={12} color="gray" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('PrivacyRoadmap')}>
-          <Text>Open Modal Screen 3</Text>
+        <TouchableOpacity
+          style={styles.customButton}
+          onPress={() => navigation.navigate('PrivacyRoadmap')}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <PrivacyButtonIcon />
+            <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
+              Privacy roadmap
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={12} color="gray" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Terms')}>
-          <Text>Open Modal Screen 4</Text>
+        <TouchableOpacity
+          style={styles.customButton}
+          onPress={() => navigation.navigate('Terms')}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <TermsButtonIcon />
+            <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
+              Terms and conditions
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={12} color="gray" />
         </TouchableOpacity>
       </View>
     </ContentWrapper>
@@ -86,6 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF9',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
   },
   innerCommunityContainer: {
     height: 96,
@@ -97,6 +123,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2ED3B7',
     padding: 24,
+  },
+  customButton: {
+    height: 46,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
 });
 

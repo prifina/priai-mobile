@@ -1,6 +1,6 @@
 import 'react-native-url-polyfill/auto';
 
-import React, {useState, useLayoutEffect} from 'react';
+import React, {useState, useLayoutEffect, useContext} from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,6 +20,9 @@ import {Configuration, OpenAIApi} from 'openai';
 import AppleHealthKit from 'react-native-health';
 import ContentWrapper from '../components/ContentWrapper';
 
+import AppContext from '../hoc/AppContext';
+import DotLoader from '../components/DotLoader';
+
 const configuration = new Configuration({
   apiKey: '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',
 });
@@ -27,10 +30,21 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const ChatScreen = ({navigation}) => {
+  const {defaultValues} = useContext(AppContext);
+
+  const [isLoading, setIsLoading] = useState(false);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button onPress={() => setConversation([])} title="Clear chat" />
+        <TouchableOpacity
+          style={{marginRight: 16}}
+          onPress={() => handleClearChat()}
+          title="Save">
+          <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
+            Clear chat
+          </Text>
+        </TouchableOpacity>
       ),
     });
   }, [navigation]);
@@ -44,7 +58,14 @@ const ChatScreen = ({navigation}) => {
 
   const deviceHeight = useHeaderHeight();
 
+  const handleClearChat = () => {
+    setConversation([]);
+    setIsLoading(false);
+  };
+
   const handleSteps = async () => {
+    setIsLoading(true);
+
     try {
       const permissions = {
         permissions: {
@@ -52,7 +73,7 @@ const ChatScreen = ({navigation}) => {
             AppleHealthKit.Constants.Permissions.StepCount,
             AppleHealthKit.Constants.Permissions.Steps,
           ],
-          write: [AppleHealthKit.Constants.Permissions.Steps],
+          // write: [AppleHealthKit.Constants.Permissions.Steps],
         },
       };
 
@@ -80,20 +101,24 @@ const ChatScreen = ({navigation}) => {
           setConversation([
             ...conversation,
             {
-              speaker: 'AI Bot',
+              speaker: defaultValues.aiName,
               message: `You have taken ${stepCount} steps today.`,
             },
           ]);
+          setIsLoading(false);
         });
       });
     } catch (e) {
       console.log(e);
       setApiResponse('Something went wrong. Please try again.');
       setError(e);
+      setIsLoading(false);
     }
   };
 
   const handleSubmit = async () => {
+    setIsLoading(true);
+
     if (prompt.toLowerCase().includes('steps')) {
       await handleSteps();
       setPrompt('');
@@ -110,35 +135,37 @@ const ChatScreen = ({navigation}) => {
       setApiResponse(response);
       setConversation([
         ...conversation,
-        {speaker: 'You', message: prompt},
-        {speaker: 'AI Bot', message: response},
+        {speaker: defaultValues.name, message: prompt},
+        {speaker: defaultValues.aiName, message: response},
       ]);
+      setIsLoading(false);
     } catch (e) {
       console.log(e);
       setApiResponse('Something went wrong. Please try again.');
       setError(e);
+      setIsLoading(false);
     }
     setPrompt('');
   };
 
   return (
     // <View style={styles.container}>
-    <ContentWrapper>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior="padding"
-        keyboardVerticalOffset={deviceHeight + 55}>
-        {error !== '' && (
-          <View style={styles.responseContainer}>
-            <Text style={styles.responseText}>{error}</Text>
-          </View>
-        )}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior="padding"
+      keyboardVerticalOffset={deviceHeight + 55}>
+      {error !== '' && (
+        <View style={styles.responseContainer}>
+          <Text style={styles.responseText}>{error}</Text>
+        </View>
+      )}
+      <ContentWrapper>
         <ScrollView style={styles.conversationContainer}>
           {conversation.map((entry, index) => (
             <View key={index} style={styles.conversationEntry}>
               <Text
                 style={
-                  entry.speaker === 'You'
+                  entry.speaker === defaultValues.name
                     ? styles.promptText
                     : styles.responseText
                 }>
@@ -147,20 +174,28 @@ const ChatScreen = ({navigation}) => {
             </View>
           ))}
         </ScrollView>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={prompt}
-            onChangeText={setPrompt}
-            placeholder="Ask me something..."
-            placeholderTextColor="#aaa"
-          />
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+      </ContentWrapper>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={prompt}
+          onChangeText={setPrompt}
+          // onSubmitEditing={() => setPrompt()}
+          placeholder="How many steps did I take today?"
+          placeholderTextColor="#aaa"
+
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          {isLoading ? (
+            <DotLoader isLoading={isLoading} />
+          ) : (
             <Text style={styles.submitButtonText}>Send</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </ContentWrapper>
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
     // </View>
   );
 };
@@ -192,11 +227,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ccc',
     padding: 10,
-    height: 48,
+    height: 55,
   },
   input: {
     flex: 1,
-    height: 40,
+    height: 36,
     paddingHorizontal: 10,
     fontSize: 18,
     color: '#444',
@@ -206,14 +241,16 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginLeft: 10,
-    backgroundColor: '#0095ff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: '#107569',
+    paddingHorizontal: 15,
+    paddingVertical: 2,
     borderRadius: 10,
+    height: 30,
+    justifyContent: 'center',
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   responseContainer: {

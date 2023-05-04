@@ -21,6 +21,7 @@ const AboutNavigator = ({navigation}) => {
             <Text>Back</Text>
           </TouchableOpacity>
         ),
+        header: () => {},
       }}>
       <AboutStack.Screen name="AboutScreen" component={AboutScreen} />
       <AboutStack.Screen name="AboutPrifina" component={AboutPrifina} />
