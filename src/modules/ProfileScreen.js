@@ -27,6 +27,7 @@ import ContentWrapper from '../components/ContentWrapper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import AppContext from '../hoc/AppContext';
+import Divider from '../components/Divider';
 
 const ProfileScreen = ({navigation}) => {
   const {defaultValues, setDefaultValues} = useContext(AppContext);
@@ -123,13 +124,8 @@ const ProfileScreen = ({navigation}) => {
           Connect your AI assistant to additional data sources to get
           personalized insights.
         </Text>
-        <View
-          style={{
-            borderBottomWidth: 1,
-            borderBottomColor: '#EAECF0',
-            marginVertical: 20,
-          }}
-        />
+
+        <Divider />
         <View
           style={styles.customButton}
           onPress={() => navigation.navigate('DataHandle')}>
@@ -179,13 +175,7 @@ const ProfileScreen = ({navigation}) => {
         <Text style={{fontSize: 16}}>
           Personalize your Pri-AI experience and manage contact channels here
         </Text>
-        <View
-          style={{
-            borderBottomWidth: 1,
-            borderBottomColor: '#EAECF0',
-            marginVertical: 20,
-          }}
-        />
+        <Divider />
         <View>
           <View style={{marginBottom: 20}}>
             <Text style={{marginBottom: 5, fontWeight: 500}}>Full name</Text>

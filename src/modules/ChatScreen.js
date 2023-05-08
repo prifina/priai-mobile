@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Button,
+  Animated,
 } from 'react-native';
 
 import {useHeaderHeight} from '@react-navigation/elements';
@@ -24,63 +25,21 @@ import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';
 
 import Voice from '@react-native-voice/voice';
+import ListeningAnimation from '../components/ListeningAnimation';
+
+
+import SendIcon from '../assets/send-icon.svg';
+import MicrophoneIcon from '../assets/microphone.svg';
+import ChatItem from './chat/ChatItem';
+import Divider from '../components/Divider';
 
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 const openai = new OpenAIApi(configuration);
 
 const ChatScreen = ({navigation}) => {
-  const [isListening, setIsListening] = useState(false);
-  const [speechError, setSpeechError] = useState('');
-
-  useEffect(() => {
-    Voice.onSpeechStart = onSpeechStart;
-    Voice.onSpeechEnd = onSpeechEnd;
-    Voice.onSpeechError = onSpeechError;
-    Voice.onSpeechResults = onSpeechResults;
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, []);
-
-  const onSpeechStart = () => {
-    setIsListening(true);
-  };
-
-  const onSpeechEnd = () => {
-    setIsListening(false);
-  };
-
-  const onSpeechError = error => {
-    console.log('onSpeechError:', error);
-    setSpeechError(error.error.message);
-    setIsListening(false);
-  };
-
-  const onSpeechResults = event => {
-    console.log('onSpeechResults:', event);
-    setPrompt(event.value[0]);
-  };
-
-  const startListening = async () => {
-    try {
-      await Voice.start('en-US');
-    } catch (error) {
-      console.error('startListening error:', error);
-    }
-  };
-
-  const stopListening = async () => {
-    try {
-      await Voice.stop();
-    } catch (error) {
-      console.error('stopListening error:', error);
-    }
-  };
-
   const {defaultValues} = useContext(AppContext);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -104,6 +63,34 @@ const ChatScreen = ({navigation}) => {
   const [apiResponse, setApiResponse] = useState('');
   const [conversation, setConversation] = useState([]);
   const [error, setError] = useState();
+
+  const timeStamp = Date.now();
+
+  const formatDateToHoursAndMinutes = timestamp => {
+    const date = new Date(timestamp);
+
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    const dayIndex = date.getDay();
+    const day = dayNames[dayIndex];
+
+    const timeString = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    });
+
+    return `${day} ${timeString}`;
+  };
+
+  const formattedDate = formatDateToHoursAndMinutes(timeStamp);
 
   const [stepCount, setStepCount] = useState([]);
 
@@ -186,8 +173,8 @@ const ChatScreen = ({navigation}) => {
       setApiResponse(response);
       setConversation([
         ...conversation,
-        {speaker: defaultValues.name, message: prompt},
-        {speaker: defaultValues.aiName, message: response},
+        {speaker: defaultValues.name, message: prompt, time: formattedDate},
+        {speaker: defaultValues.aiName, message: response, time: formattedDate},
       ]);
       setIsLoading(false);
     } catch (e) {
@@ -198,6 +185,81 @@ const ChatScreen = ({navigation}) => {
     }
     setPrompt('');
   };
+
+  // siri
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
+
+  const fadeAnim = useState(new Animated.Value(0))[0];
+
+  useEffect(() => {
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const onSpeechStart = () => {
+    setIsListening(true);
+    setPrompt(''); // Clear the prompt
+
+    // Start the animation
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onSpeechEnd = () => {
+    setIsListening(false);
+
+    // End the animation
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    // Submit the prompt after a short delay
+    setTimeout(() => {
+      handleSubmit();
+    }, 500);
+  };
+  const onSpeechError = error => {
+    console.log('onSpeechError:', error);
+    setSpeechError(error.error.message);
+    setIsListening(false);
+  };
+
+  const onSpeechResults = event => {
+    console.log('onSpeechResults:', event);
+    setPrompt(event.value[0]);
+  };
+
+  const startListening = async () => {
+    try {
+      await Voice.start('en-US');
+    } catch (error) {
+      console.error('startListening error:', error);
+    }
+  };
+
+  const stopListening = async () => {
+    try {
+      await Voice.stop();
+    } catch (error) {
+      console.error('stopListening error:', error);
+    }
+  };
+
+  /////
+
+  console.log('conversation', conversation);
 
   return (
     // <View style={styles.container}>
@@ -210,46 +272,40 @@ const ChatScreen = ({navigation}) => {
           <Text style={styles.responseText}>{error}</Text>
         </View>
       )}
-      <ContentWrapper>
-        <ScrollView style={styles.conversationContainer}>
-          {conversation.map((entry, index) => (
-            <View key={index} style={styles.conversationEntry}>
-              <Text
-                style={
-                  entry.speaker === defaultValues.name
-                    ? styles.promptText
-                    : styles.responseText
-                }>
-                {entry.speaker}: {entry.message}
-              </Text>
-            </View>
-          ))}
-        </ScrollView>
-      </ContentWrapper>
+
+      <ScrollView style={styles.conversationContainer}>
+        {conversation.map((item, index) => (
+          <View key={index} style={styles.conversationEntry}>
+            <ChatItem
+              type={item.speaker === defaultValues.name ? 'entry' : 'response'}
+              title={item.speaker}
+              time={item.time}
+              message={item.message}
+            />
+          </View>
+        ))}
+      </ScrollView>
+
+      {isListening ? <Text>listening...</Text> : null}
 
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           value={prompt}
           onChangeText={setPrompt}
-          // onSubmitEditing={() => setPrompt()}
           placeholder="How many steps did I take today?"
           placeholderTextColor="#aaa"
         />
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          {isLoading ? (
-            <DotLoader isLoading={isLoading} />
-          ) : (
-            <Text style={styles.submitButtonText}>Send</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.siriButton}
-          onPressIn={startListening}
-          onPressOut={stopListening}>
-          <Text style={styles.siriButtonText}>Siri</Text>
-        </TouchableOpacity>
+        <View style={styles.iconsContainer}>
+          <TouchableOpacity onPress={handleSubmit}>
+            {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPressIn={startListening}
+            onPressOut={stopListening}>
+            <MicrophoneIcon />
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
     // </View>
@@ -280,8 +336,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
     padding: 10,
     height: 55,
   },
@@ -295,19 +352,12 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
   },
-  submitButton: {
-    marginLeft: 10,
-    backgroundColor: '#107569',
-    paddingHorizontal: 15,
-    paddingVertical: 2,
-    borderRadius: 10,
-    height: 30,
-    justifyContent: 'center',
+  iconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  icon: {
+    paddingHorizontal: 10,
   },
   responseContainer: {
     alignItems: 'center',
