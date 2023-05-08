@@ -1,6 +1,6 @@
 import 'react-native-url-polyfill/auto';
 
-import React, {useState, useLayoutEffect, useContext} from 'react';
+import React, {useState, useLayoutEffect, useContext, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -23,6 +23,8 @@ import ContentWrapper from '../components/ContentWrapper';
 import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';
 
+import Voice from '@react-native-voice/voice';
+
 const configuration = new Configuration({
   apiKey: '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',
 });
@@ -30,6 +32,55 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const ChatScreen = ({navigation}) => {
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
+
+  useEffect(() => {
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const onSpeechStart = () => {
+    setIsListening(true);
+  };
+
+  const onSpeechEnd = () => {
+    setIsListening(false);
+  };
+
+  const onSpeechError = error => {
+    console.log('onSpeechError:', error);
+    setSpeechError(error.error.message);
+    setIsListening(false);
+  };
+
+  const onSpeechResults = event => {
+    console.log('onSpeechResults:', event);
+    setPrompt(event.value[0]);
+  };
+
+  const startListening = async () => {
+    try {
+      await Voice.start('en-US');
+    } catch (error) {
+      console.error('startListening error:', error);
+    }
+  };
+
+  const stopListening = async () => {
+    try {
+      await Voice.stop();
+    } catch (error) {
+      console.error('stopListening error:', error);
+    }
+  };
+
   const {defaultValues} = useContext(AppContext);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -193,6 +244,12 @@ const ChatScreen = ({navigation}) => {
             <Text style={styles.submitButtonText}>Send</Text>
           )}
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.siriButton}
+          onPressIn={startListening}
+          onPressOut={stopListening}>
+          <Text style={styles.siriButtonText}>Siri</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
     // </View>
@@ -256,6 +313,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
+  },
+  siriButton: {
+    marginLeft: 10,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 15,
+    paddingVertical: 2,
+    borderRadius: 10,
+    height: 30,
+    justifyContent: 'center',
+  },
+  siriButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

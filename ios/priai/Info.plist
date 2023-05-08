@@ -63,5 +63,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSSpeechRecognitionUsageDescription</key>
+<string>Pri AI requires access to speech recognition to convert voice input to text.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Pri AI requires access to the microphone to capture voice input.</string>
 </dict>
 </plist>
