@@ -43,7 +43,7 @@ function App() {
     email: '',
   });
 
-  const demo = true;
+  const demo = false;
 
   return (
     <AppContext.Provider value={{defaultValues, setDefaultValues, demo}}>

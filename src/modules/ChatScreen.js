@@ -46,7 +46,7 @@ const configuration = new Configuration({
   apiKey: config.OPENAI_API_KEY,
 });
 
-console.log('env', config.OPENAI_API_KEY);
+// console.log('env', config.OPENAI_API_KEY);
 
 const openai = new OpenAIApi(configuration);
 
@@ -119,7 +119,7 @@ const ChatScreen = ({navigation}) => {
     location: 'default',
   });
 
-  console.log('db', db);
+  // console.log('db', db);
 
   const createTable = () => {
     db.transaction(tx => {
@@ -162,11 +162,21 @@ const ChatScreen = ({navigation}) => {
     });
   };
 
+  // const isSameDay = (d1, d2) => {
+  //   return (
+  //     d1.getFullYear() === d2.getFullYear() &&
+  //     d1.getMonth() === d2.getMonth() &&
+  //     d1.getDate() === d2.getDate()
+  //   );
+  // };
+
   const isSameDay = (d1, d2) => {
+    const date1 = new Date(d1);
+    const date2 = new Date(d2);
     return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
     );
   };
 
@@ -183,8 +193,8 @@ const ChatScreen = ({navigation}) => {
 
   const parsePeriod = period => {
     const [month, year] = period.split(' ');
-    const startDate = new Date(year, monthNames.indexOf(month), 1);
-    const endDate = new Date(year, monthNames.indexOf(month) + 1, 0);
+    const startDate = new Date(year, parseInt(month) - 1, 1);
+    const endDate = new Date(year, parseInt(month), 0);
     return [startDate, endDate];
   };
 
@@ -368,6 +378,8 @@ const ChatScreen = ({navigation}) => {
         if (match) {
           const period = match[1];
           const [startDate, endDate] = parsePeriod(period);
+
+          console.log('parse period', period, startDate, endDate);
           calculateAverageSteps(startDate, endDate, average => {
             setApiResponse(
               `Your average steps in ${period} was ${Math.round(average)}.`,
@@ -390,8 +402,88 @@ const ChatScreen = ({navigation}) => {
             ]);
           });
         }
-      }
+      } else if (prompt.toLowerCase().includes('on')) {
+        // Retrieve step count for a specific date
 
+        const dateRegex =
+          /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const monthNames = [
+            'january',
+            'february',
+            'march',
+            'april',
+            'may',
+            'june',
+            'july',
+            'august',
+            'september',
+            'october',
+            'november',
+            'december',
+          ];
+          const month = monthNames.indexOf(match[1].toLowerCase());
+          const day = parseInt(match[2], 10);
+          const year = match[3]
+            ? parseInt(match[3], 10)
+            : new Date().getFullYear(); // If year is not specified, use current year
+          const selectedDate = new Date(year, month, day);
+
+          retrieveSteps(steps => {
+            const selectedDateSteps = steps.find(step =>
+              isSameDay(new Date(step.date), selectedDate),
+            );
+            if (selectedDateSteps) {
+              setApiResponse(
+                `You have taken ${
+                  selectedDateSteps.steps
+                } steps on ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `You have taken ${
+                    selectedDateSteps.steps
+                  } steps on ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            } else {
+              setApiResponse(
+                `No step count data available for ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `No step count data available for ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            }
+          });
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        setApiResponse('Sorry, I did not understand your question.');
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(false);
       setPrompt('');
       return;
