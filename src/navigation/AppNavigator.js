@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 import ChatScreen from '../modules/ChatScreen';
@@ -14,9 +14,14 @@ import StarLogo from '../assets/star.svg';
 import UserLogo from '../assets/user-circle.svg';
 import InfoLogo from '../assets/info-circle.svg';
 
+import AppContext from '../hoc/AppContext';
+import ChatScreenDemo from '../modules/ChatScreenDemo';
+
 const Tab = createBottomTabNavigator();
 
 const AppNavigator = () => {
+  const {demo} = useContext(AppContext);
+
   return (
     <Tab.Navigator
       screenOptions={({navigation}) => ({
@@ -36,7 +41,7 @@ const AppNavigator = () => {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={demo ? ChatScreenDemo : ChatScreen}
         options={({navigation}) => ({
           tabBarIcon: ({focused, color, size}) => <ChatLogo />,
         })}

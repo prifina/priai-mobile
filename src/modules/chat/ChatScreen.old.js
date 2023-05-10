@@ -1,12 +1,6 @@
 import 'react-native-url-polyfill/auto';
 
-import React, {
-  useState,
-  useLayoutEffect,
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import React, {useState, useLayoutEffect, useContext, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -40,13 +34,11 @@ import Divider from '../components/Divider';
 
 import SQLite from 'react-native-sqlite-storage';
 
-import config from '../../config';
+import config from '../../../config';
 
 const configuration = new Configuration({
   apiKey: config.OPENAI_API_KEY,
 });
-
-console.log('env', config.OPENAI_API_KEY);
 
 const openai = new OpenAIApi(configuration);
 
@@ -194,7 +186,7 @@ const ChatScreen = ({navigation}) => {
     try {
       const permissions = {
         permissions: {
-          read: [AppleHealthKit.Constants.Permissions.StepCount],
+          read: [AppleHealthKit.Constants.Permissions.Steps],
         },
       };
 
@@ -203,7 +195,7 @@ const ChatScreen = ({navigation}) => {
           console.log('[ERROR] Cannot grant permissions!');
         }
 
-        // past year
+        // Get steps from the past year
         const options = {
           startDate: new Date(2023, 0, 1).toISOString(),
           endDate: new Date().toISOString(),
@@ -215,19 +207,10 @@ const ChatScreen = ({navigation}) => {
             return;
           }
           console.log('results', results);
-
-          // average steps
-          const stepsPerDay = {};
-
+          // Insert each step entry into the SQLite database
           results.forEach(entry => {
-            const date = new Date(entry.start).toDateString(); // convert start time to date string - ignore hours  minutes  seconds
-            stepsPerDay[date] = (stepsPerDay[date] || 0) + entry.quantity; // accumulate steps per day
+            insertSteps(entry.start, entry.quantity);
           });
-
-          for (const [date, steps] of Object.entries(stepsPerDay)) {
-            insertSteps(date, steps);
-          }
-
           setIsLoading(false);
         });
       });
@@ -253,15 +236,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken ${todaySteps.steps} steps today.`,
-                time: formattedDate,
               },
             ]);
           } else {
@@ -269,14 +245,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken 0 steps today.`,
-                time: formattedDate,
               },
             ]);
           }
@@ -293,15 +263,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken ${lastSundaySteps.steps} steps last Sunday.`,
-                time: formattedDate,
               },
             ]);
           } else {
@@ -309,15 +272,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken 0 steps last Sunday.`,
-                time: formattedDate,
               },
             ]);
           }
@@ -334,15 +290,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken ${yesterdaySteps.steps} steps yesterday.`,
-                time: formattedDate,
               },
             ]);
           } else {
@@ -350,15 +299,8 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `You have taken 0 steps yesterday.`,
-                time: formattedDate,
               },
             ]);
           }
@@ -375,17 +317,10 @@ const ChatScreen = ({navigation}) => {
             setConversation([
               ...conversation,
               {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
                 speaker: defaultValues.aiName,
                 message: `Your average steps in ${period} was ${Math.round(
                   average,
                 )}.`,
-                time: formattedDate,
               },
             ]);
           });
@@ -420,8 +355,14 @@ const ChatScreen = ({navigation}) => {
     setPrompt('');
   };
 
-  ////=========////=========////=========////=========////=========////=========////=========////=========////========= siri
+  // useEffect(() => {
+  //   createDatabase();
+  //   createTable();
+  //   // optionally you can call handleSteps here to fetch steps on component mount
+  //   // handleSteps();
+  // }, []);
 
+  ////=========////=========////=========////=========////=========////=========////=========////=========////========= siri
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState('');
 
@@ -494,12 +435,6 @@ const ChatScreen = ({navigation}) => {
 
   /////////=========////=========////=========////=========////=========////=========////=========////=========
 
-  const scrollViewRef = useRef();
-
-  useEffect(() => {
-    scrollViewRef.current.scrollToEnd({animated: true});
-  }, [conversation]);
-
   console.log('conversation', conversation);
 
   return (
@@ -514,12 +449,7 @@ const ChatScreen = ({navigation}) => {
         </View>
       )}
 
-      <ScrollView
-        style={styles.conversationContainer}
-        ref={scrollViewRef}
-        onContentSizeChange={() =>
-          scrollViewRef.current.scrollToEnd({animated: true})
-        }>
+      <ScrollView style={styles.conversationContainer}>
         {conversation.map((item, index) => (
           <View key={index} style={styles.conversationEntry}>
             <ChatItem
@@ -532,30 +462,27 @@ const ChatScreen = ({navigation}) => {
         ))}
       </ScrollView>
 
-      {isListening ? <DotLoader isLoading={isListening} /> : null}
+      {isListening ? <Text>listening...</Text> : null}
       <Button title="Get steps" onPress={handleSteps} />
       <Button title="create table" onPress={createTable} />
 
-      <View style={styles.inputWrapper}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={prompt}
-            onChangeText={setPrompt}
-            placeholder="How many steps did I take today?"
-            placeholderTextColor="#aaa"
-          />
-          <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={handleSubmit}>
-              {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{marginLeft: 5}}
-              onPressIn={startListening}
-              onPressOut={stopListening}>
-              <MicrophoneIcon />
-            </TouchableOpacity>
-          </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={prompt}
+          onChangeText={setPrompt}
+          placeholder="How many steps did I take today?"
+          placeholderTextColor="#aaa"
+        />
+        <View style={styles.iconsContainer}>
+          <TouchableOpacity onPress={handleSubmit}>
+            {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPressIn={startListening}
+            onPressOut={stopListening}>
+            <MicrophoneIcon />
+          </TouchableOpacity>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -584,22 +511,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10,
   },
-  inputWrapper: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
-    // borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 24,
-    height: 48,
+    borderRadius: 10,
+    padding: 10,
+    height: 55,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-
+  input: {
+    flex: 1,
+    height: 36,
+    paddingHorizontal: 10,
+    fontSize: 18,
+    color: '#444',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
@@ -607,13 +533,6 @@ const styles = StyleSheet.create({
   iconsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
   },
   icon: {
     paddingHorizontal: 10,

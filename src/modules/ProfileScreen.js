@@ -30,9 +30,9 @@ import AppContext from '../hoc/AppContext';
 import Divider from '../components/Divider';
 
 const ProfileScreen = ({navigation}) => {
-  const {defaultValues, setDefaultValues} = useContext(AppContext);
+  const {defaultValues, setDefaultValues, demo} = useContext(AppContext);
 
-  console.log('def values', defaultValues);
+  // console.log('def values', defaultValues);
 
   const handleSave = () => {
     console.log('Nested state:', defaultValues);
@@ -66,16 +66,13 @@ const ProfileScreen = ({navigation}) => {
   /* Permission options */
   const permissions = {
     permissions: {
-      read: [
-        AppleHealthKit.Constants.Permissions.StepCount,
-        AppleHealthKit.Constants.Permissions.Steps,
-      ],
-      write: [AppleHealthKit.Constants.Permissions.Steps],
+      read: [AppleHealthKit.Constants.Permissions.StepCount],
     },
   };
 
   const options = {
-    startDate: new Date(2020, 1, 1).toISOString(),
+    startDate: new Date(2001, 0, 1).toISOString(),
+    endDate: new Date().toISOString(),
   };
 
   AppleHealthKit.initHealthKit(permissions, error => {
@@ -96,7 +93,7 @@ const ProfileScreen = ({navigation}) => {
 
   AppleHealthKit.getStepCount(options, (err, results) => {
     if (err) {
-      console.log('error results');
+      console.log('error results', err);
 
       return;
     }

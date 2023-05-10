@@ -43,8 +43,10 @@ function App() {
     email: '',
   });
 
+  const demo = true;
+
   return (
-    <AppContext.Provider value={{defaultValues, setDefaultValues}}>
+    <AppContext.Provider value={{defaultValues, setDefaultValues, demo}}>
       <MainNavigator />
     </AppContext.Provider>
   );

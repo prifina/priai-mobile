@@ -36,11 +36,15 @@
 		</dict>
 	</dict>
 	<key>NSHealthShareUsageDescription</key>
-	<string>for some reason there needs to be long desc</string>
+	<string>Pri AI Requires to use Health Share Usage</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>long description for some reason</string>
+	<string>Pri AI Requires to use Health Update Usage</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Pri AI requires access to the microphone to capture voice input.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Pri AI requires access to speech recognition to convert voice input to text.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>FontAwesome.ttf</string>
@@ -63,9 +67,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSSpeechRecognitionUsageDescription</key>
-<string>Pri AI requires access to speech recognition to convert voice input to text.</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>Pri AI requires access to the microphone to capture voice input.</string>
+	<key>NSAllowsLocalNetworking</key>
+<true/>
 </dict>
 </plist>

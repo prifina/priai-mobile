@@ -14,6 +14,10 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-priai-priaiTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-priai-priaiTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		BB8B98F22A0B1A3500CA5C38 /* www in Resources */ = {isa = PBXBuildFile; fileRef = BB8B98F12A0B1A3500CA5C38 /* www */; };
+		BB8B98F42A0B1B4200CA5C38 /* libreact-native-sqlite-storage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8B98F32A0B1B4200CA5C38 /* libreact-native-sqlite-storage.a */; };
+		BB8B98F52A0B1B4200CA5C38 /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BBFB9C9F2A0B095200516788 /* libsqlite3.0.tbd */; };
+		BB8B98F62A0B1B4200CA5C38 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BBFB9CA02A0B095200516788 /* libsqlite3.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +47,11 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-priai.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-priai.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = priai/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-priai-priaiTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-priai-priaiTests.release.xcconfig"; path = "Target Support Files/Pods-priai-priaiTests/Pods-priai-priaiTests.release.xcconfig"; sourceTree = "<group>"; };
+		BB8B98F12A0B1A3500CA5C38 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; name = www; path = ../../../../Desktop/www; sourceTree = "<group>"; };
+		BB8B98F32A0B1B4200CA5C38 /* libreact-native-sqlite-storage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-sqlite-storage.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBFB9C9D2A0B08CE00516788 /* libreact-native-sqlite-storage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-sqlite-storage.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBFB9C9F2A0B095200516788 /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
+		BBFB9CA02A0B095200516788 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		BBFD1CB429FBF5F70014A603 /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
 		BBFD1CB529FBF5F70014A603 /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
 		BBFD1CB629FBF5F70014A603 /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Feather.ttf; sourceTree = "<group>"; };
@@ -76,6 +85,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB8B98F42A0B1B4200CA5C38 /* libreact-native-sqlite-storage.a in Frameworks */,
+				BB8B98F52A0B1B4200CA5C38 /* libsqlite3.0.tbd in Frameworks */,
+				BB8B98F62A0B1B4200CA5C38 /* libsqlite3.tbd in Frameworks */,
 				0C80B921A6F3F58F76C31292 /* libPods-priai.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -103,6 +115,7 @@
 		13B07FAE1A68108700A75B9A /* priai */ = {
 			isa = PBXGroup;
 			children = (
+				BB8B98F12A0B1A3500CA5C38 /* www */,
 				BBFD1CD42A004F2A0014A603 /* priai.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -117,6 +130,10 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BB8B98F32A0B1B4200CA5C38 /* libreact-native-sqlite-storage.a */,
+				BBFB9C9F2A0B095200516788 /* libsqlite3.0.tbd */,
+				BBFB9CA02A0B095200516788 /* libsqlite3.tbd */,
+				BBFB9C9D2A0B08CE00516788 /* libreact-native-sqlite-storage.a */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-priai.a */,
 				19F6CBCC0A4E27FBF8BF4A61 /* libPods-priai-priaiTests.a */,
@@ -285,6 +302,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB8B98F22A0B1A3500CA5C38 /* www in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
