@@ -16,10 +16,10 @@ const AboutScreen = ({navigation}) => {
     <ContentWrapper title="About this app">
       <View style={styles.badgeContainer}>
         <View style={styles.badge}>
-          <Text>Version 0.0.1</Text>
+          <Text>Version 0.0.2</Text>
         </View>
         <View style={styles.badge}>
-          <Text>Released 5/3/2023</Text>
+          <Text>Released 11/5/2023</Text>
         </View>
       </View>
       <Text style={{fontSize: 16, marginBottom: 24}}>
@@ -39,9 +39,14 @@ const AboutScreen = ({navigation}) => {
               <Text style={{fontSize: 16, color: 'white', marginBottom: 5}}>
                 Join our community!
               </Text>
-              <Text style={{fontSize: 12, color: 'white'}}>
-                Help shape the future of Pri-AI in our community Slack group
-              </Text>
+              <View>
+                <Text style={{fontSize: 12, color: 'white'}}>
+                  Help shape the future of Pri-AI
+                </Text>
+                <Text style={{fontSize: 12, color: 'white'}}>
+                  in our community Slack group
+                </Text>
+              </View>
             </View>
             <Icon name="chevron-right" size={12} color="#EBEBF5" />
           </LinearGradient>

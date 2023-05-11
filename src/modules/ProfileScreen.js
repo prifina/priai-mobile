@@ -32,6 +32,8 @@ import Divider from '../components/Divider';
 const ProfileScreen = ({navigation}) => {
   const {defaultValues, setDefaultValues, demo} = useContext(AppContext);
 
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
   // console.log('def values', defaultValues);
 
   const handleSave = () => {
@@ -63,43 +65,78 @@ const ProfileScreen = ({navigation}) => {
 
   /////APPLE HEALTHKIT
 
-  /* Permission options */
+  // /* Permission options */
+  // const permissions = {
+  //   permissions: {
+  //     read: [AppleHealthKit.Constants.Permissions.StepCount],
+  //   },
+  // };
+
+  // const options = {
+  //   startDate: new Date(2001, 0, 1).toISOString(),
+  //   endDate: new Date().toISOString(),
+  // };
+
+  // AppleHealthKit.initHealthKit(permissions, error => {
+  //   /* Called after we receive a response from the system */
+
+  //   if (error) {
+  //     console.log('[ERROR] Cannot grant permissions!');
+  //   }
+
+  //   /* Can now read or write to HealthKit */
+
+  //   AppleHealthKit.getHeartRateSamples(options, (callbackError, results) => {
+  //     /* Samples are now collected from HealthKit */
+  //   });
+  // });
+
+  // const [stepCount, setStepCount] = useState([]);
+
+  // AppleHealthKit.getStepCount(options, (err, results) => {
+  //   if (err) {
+  //     console.log('error results', err);
+
+  //     return;
+  //   }
+  //   console.log('results', results);
+  //   setStepCount(results.value);
+  // });
+
   const permissions = {
     permissions: {
       read: [AppleHealthKit.Constants.Permissions.StepCount],
     },
   };
 
-  const options = {
-    startDate: new Date(2001, 0, 1).toISOString(),
-    endDate: new Date().toISOString(),
-  };
+  useEffect(() => {
+    AppleHealthKit.initHealthKit(permissions, error => {
+      /* Called after we receive a response from the system */
 
-  AppleHealthKit.initHealthKit(permissions, error => {
-    /* Called after we receive a response from the system */
-
-    if (error) {
-      console.log('[ERROR] Cannot grant permissions!');
-    }
-
-    /* Can now read or write to HealthKit */
-
-    AppleHealthKit.getHeartRateSamples(options, (callbackError, results) => {
-      /* Samples are now collected from HealthKit */
+      if (error) {
+        console.log('[ERROR] Cannot grant permissions!');
+        setIsAuthorized(false);
+      }
+      {
+        setIsAuthorized(true);
+      }
     });
-  });
 
-  const [stepCount, setStepCount] = useState([]);
+    AppleHealthKit.isAvailable((err, available) => {
+      if (err) {
+        console.log('error initializing Healthkit: ', err);
+        setIsAuthorized(false);
 
-  AppleHealthKit.getStepCount(options, (err, results) => {
-    if (err) {
-      console.log('error results', err);
+        return;
+      }
+      if (available) {
+        console.log('success HK', available);
+        setIsAuthorized(true);
 
-      return;
-    }
-    console.log('results', results);
-    setStepCount(results.value);
-  });
+        return;
+      }
+    });
+  }, []);
 
   const deviceHeight = useHeaderHeight();
 
@@ -131,7 +168,11 @@ const ProfileScreen = ({navigation}) => {
               Apple Health
             </Text>
             <View style={styles.buttonBadge}>
-              <Text style={{color: '#027A48'}}>Active</Text>
+              {isAuthorized ? (
+                <Text style={{color: '#027A48'}}>Active</Text>
+              ) : (
+                <Text style={{color: 'red'}}>Inactive</Text>
+              )}
             </View>
           </View>
           <TouchableOpacity onPress={openAppPrivacySettings}>
@@ -187,6 +228,7 @@ const ProfileScreen = ({navigation}) => {
               placeholder="Enter your name"
               value={defaultValues.name}
               onChangeText={name => setDefaultValues({...defaultValues, name})}
+              returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
               Your AI will call you this
@@ -209,6 +251,7 @@ const ProfileScreen = ({navigation}) => {
               onChangeText={aiName =>
                 setDefaultValues({...defaultValues, aiName})
               }
+              returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
               Call your assistant this
@@ -231,6 +274,7 @@ const ProfileScreen = ({navigation}) => {
               onChangeText={email =>
                 setDefaultValues({...defaultValues, email})
               }
+              returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
               We will use this to contact you
@@ -246,7 +290,7 @@ const styles = StyleSheet.create({
   buttonBadge: {
     fontSize: 12,
     maxWidth: 241,
-    backgroundColor: '#ECFDF3',
+    // backgroundColor: '#ECFDF3',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

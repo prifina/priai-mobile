@@ -18,6 +18,7 @@ import {
   Platform,
   Button,
   Animated,
+  Alert,
 } from 'react-native';
 
 import {useHeaderHeight} from '@react-navigation/elements';
@@ -40,6 +41,8 @@ import Divider from '../components/Divider';
 
 import SQLite from 'react-native-sqlite-storage';
 
+import useDatabaseHooks from '../utils/useDatabaseHooks';
+
 import config from '../../config';
 
 const configuration = new Configuration({
@@ -53,7 +56,19 @@ const openai = new OpenAIApi(configuration);
 const ChatScreen = ({navigation}) => {
   const {defaultValues} = useContext(AppContext);
 
+  const {createTable, insertSteps, retrieveSteps, calculateAverageSteps} =
+    useDatabaseHooks();
+
   const [isLoading, setIsLoading] = useState(false);
+
+  const deviceHeight = useHeaderHeight();
+
+  const handleClearChat = () => {
+    setConversation([]);
+    setIsLoading(false);
+
+    setIsListening(false);
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -74,6 +89,9 @@ const ChatScreen = ({navigation}) => {
   const [apiResponse, setApiResponse] = useState('');
   const [conversation, setConversation] = useState([]);
   const [error, setError] = useState();
+
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
 
   const timeStamp = Date.now();
 
@@ -105,69 +123,54 @@ const ChatScreen = ({navigation}) => {
 
   const [stepCount, setStepCount] = useState([]);
 
-  const deviceHeight = useHeaderHeight();
-
-  const handleClearChat = () => {
-    setConversation([]);
-    setIsLoading(false);
-  };
-
   //////////=========////=========////=========////=========////=========////=========////=========////=========APPLE HEALTHKIT STEPS AND SQL
-  const db = SQLite.openDatabase({
-    name: 'database.db',
-    createFromLocation: 1,
-    location: 'default',
-  });
+  // const db = SQLite.openDatabase({
+  //   name: 'database.db',
+  //   createFromLocation: 1,
+  //   location: 'default',
+  // });
 
   // console.log('db', db);
 
-  const createTable = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS Steps (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, steps INTEGER);',
-      );
-    });
-  };
+  // const createTable = () => {
+  //   db.transaction(tx => {
+  //     tx.executeSql(
+  //       'CREATE TABLE IF NOT EXISTS Steps (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, steps INTEGER);',
+  //     );
+  //   });
+  // };
 
-  const insertSteps = (date, steps) => {
-    db.transaction(tx => {
-      tx.executeSql('INSERT INTO Steps (date, steps) VALUES (?,?)', [
-        date,
-        steps,
-      ]);
-    });
-  };
+  // const insertSteps = (date, steps) => {
+  //   db.transaction(tx => {
+  //     tx.executeSql('INSERT INTO Steps (date, steps) VALUES (?,?)', [
+  //       date,
+  //       steps,
+  //     ]);
+  //   });
+  // };
 
-  const retrieveSteps = callback => {
-    db.transaction(tx => {
-      tx.executeSql('SELECT * FROM Steps', [], (tx, results) => {
-        let steps = [];
-        for (let i = 0; i < results.rows.length; i++) {
-          steps.push(results.rows.item(i));
-        }
-        callback(steps);
-      });
-    });
-  };
+  // const retrieveSteps = callback => {
+  //   db.transaction(tx => {
+  //     tx.executeSql('SELECT * FROM Steps', [], (tx, results) => {
+  //       let steps = [];
+  //       for (let i = 0; i < results.rows.length; i++) {
+  //         steps.push(results.rows.item(i));
+  //       }
+  //       callback(steps);
+  //     });
+  //   });
+  // };
 
-  const calculateAverageSteps = (startDate, endDate, callback) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT AVG(steps) as average FROM Steps WHERE date BETWEEN ? AND ?',
-        [startDate, endDate],
-        (tx, results) => {
-          callback(results.rows.item(0).average);
-        },
-      );
-    });
-  };
-
-  // const isSameDay = (d1, d2) => {
-  //   return (
-  //     d1.getFullYear() === d2.getFullYear() &&
-  //     d1.getMonth() === d2.getMonth() &&
-  //     d1.getDate() === d2.getDate()
-  //   );
+  // const calculateAverageSteps = (startDate, endDate, callback) => {
+  //   db.transaction(tx => {
+  //     tx.executeSql(
+  //       'SELECT AVG(steps) as average FROM Steps WHERE date BETWEEN ? AND ?',
+  //       [startDate.getTime(), endDate.getTime()],
+  //       (tx, results) => {
+  //         callback(results.rows.item(0).average);
+  //       },
+  //     );
+  //   });
   // };
 
   const isSameDay = (d1, d2) => {
@@ -178,11 +181,6 @@ const ChatScreen = ({navigation}) => {
       date1.getMonth() === date2.getMonth() &&
       date1.getDate() === date2.getDate()
     );
-  };
-
-  const lastSunday = () => {
-    const today = new Date();
-    return new Date(today.setDate(today.getDate() - today.getDay()));
   };
 
   const addDays = (date, days) => {
@@ -197,6 +195,43 @@ const ChatScreen = ({navigation}) => {
     const endDate = new Date(year, parseInt(month), 0);
     return [startDate, endDate];
   };
+
+  const monthNames = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
+  ];
+
+  const daysOfWeek = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ];
+
+  const lastDayOfWeek = day => {
+    const today = new Date();
+    const lastDay = new Date(
+      today.setDate(
+        today.getDate() - ((7 + today.getDay() - daysOfWeek.indexOf(day)) % 7),
+      ),
+    );
+    return lastDay;
+  };
+
+  const [dataStatus, setDataStatus] = useState(false);
 
   const handleSteps = async () => {
     setIsLoading(true);
@@ -239,6 +274,7 @@ const ChatScreen = ({navigation}) => {
           }
 
           setIsLoading(false);
+          setDataStatus(true);
         });
       });
     } catch (e) {
@@ -246,8 +282,21 @@ const ChatScreen = ({navigation}) => {
       setApiResponse('Something went wrong.');
       setError(e);
       setIsLoading(false);
+      setDataStatus(false);
+
+      Alert.alert(
+        'Error',
+        `Failed to retrieve health data. Please try again. ${error}`,
+        [{text: 'OK', onPress: () => console.log('OK pressed')}],
+        {cancelable: false},
+      );
     }
   };
+
+  useEffect(() => {
+    handleSteps();
+    createTable();
+  }, []);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -291,47 +340,52 @@ const ChatScreen = ({navigation}) => {
             ]);
           }
         });
-      } else if (prompt.toLowerCase().includes('last sunday')) {
-        retrieveSteps(steps => {
-          const lastSundaySteps = steps.find(step =>
-            isSameDay(new Date(step.date), lastSunday()),
-          );
-          if (lastSundaySteps) {
-            setApiResponse(
-              `You have taken ${lastSundaySteps.steps} steps last Sunday.`,
-            );
-            setConversation([
-              ...conversation,
-              {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
+      } else if (prompt.toLowerCase().includes('last')) {
+        for (let day of daysOfWeek) {
+          if (prompt.toLowerCase().includes(`last ${day}`)) {
+            retrieveSteps(steps => {
+              const lastDaySteps = steps.find(step =>
+                isSameDay(new Date(step.date), lastDayOfWeek(day)),
+              );
+              if (lastDaySteps) {
+                setApiResponse(
+                  `You have taken ${lastDaySteps.steps} steps last ${day}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
 
-              {
-                speaker: defaultValues.aiName,
-                message: `You have taken ${lastSundaySteps.steps} steps last Sunday.`,
-                time: formattedDate,
-              },
-            ]);
-          } else {
-            setApiResponse(`You have taken 0 steps last Sunday.`);
-            setConversation([
-              ...conversation,
-              {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have taken ${lastDaySteps.steps} steps last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              } else {
+                setApiResponse(`You have taken 0 steps last ${day}.`);
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
 
-              {
-                speaker: defaultValues.aiName,
-                message: `You have taken 0 steps last Sunday.`,
-                time: formattedDate,
-              },
-            ]);
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have taken 0 steps last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              }
+            });
+            break;
           }
-        });
+        }
       } else if (prompt.toLowerCase().includes('yesterday')) {
         retrieveSteps(steps => {
           const yesterdaySteps = steps.find(step =>
@@ -374,33 +428,45 @@ const ChatScreen = ({navigation}) => {
           }
         });
       } else if (prompt.toLowerCase().includes('average')) {
-        const match = prompt.match(/average in ([\w\s]+)$/);
+        // Parse date range from user input
+        const dateRegex =
+          /average from ([a-zA-Z]+\s\d{1,2},\s\d{4}) to ([a-zA-Z]+\s\d{1,2},\s\d{4})/i;
+        const match = prompt.match(dateRegex);
         if (match) {
-          const period = match[1];
-          const [startDate, endDate] = parsePeriod(period);
-
-          console.log('parse period', period, startDate, endDate);
-          calculateAverageSteps(startDate, endDate, average => {
-            setApiResponse(
-              `Your average steps in ${period} was ${Math.round(average)}.`,
-            );
-            setConversation([
-              ...conversation,
-              {
-                speaker: defaultValues.name,
-                message: prompt,
-                time: formattedDate,
-              },
-
-              {
-                speaker: defaultValues.aiName,
-                message: `Your average steps in ${period} was ${Math.round(
+          const startDate = new Date(match[1]);
+          const endDate = new Date(match[2]);
+          if (startDate && endDate) {
+            calculateAverageSteps(startDate, endDate, average => {
+              setApiResponse(
+                `Your average steps from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
                   average,
                 )}.`,
-                time: formattedDate,
-              },
-            ]);
-          });
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `Your average steps from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                    average,
+                  )}.`,
+                  time: formattedDate,
+                },
+              ]);
+            });
+          } else {
+            setApiResponse(
+              'Sorry, I did not understand the date range. Please use the format "Month Day, Year".',
+            );
+            setIsLoading(false);
+          }
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
         }
       } else if (prompt.toLowerCase().includes('on')) {
         // Retrieve step count for a specific date
@@ -409,20 +475,6 @@ const ChatScreen = ({navigation}) => {
           /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
         const match = prompt.match(dateRegex);
         if (match) {
-          const monthNames = [
-            'january',
-            'february',
-            'march',
-            'april',
-            'may',
-            'june',
-            'july',
-            'august',
-            'september',
-            'october',
-            'november',
-            'december',
-          ];
           const month = monthNames.indexOf(match[1].toLowerCase());
           const day = parseInt(match[2], 10);
           const year = match[3]
@@ -485,6 +537,7 @@ const ChatScreen = ({navigation}) => {
         return;
       }
       setIsLoading(false);
+      setIsListening(false);
       setPrompt('');
       return;
     }
@@ -493,8 +546,8 @@ const ChatScreen = ({navigation}) => {
       const result = await openai.createCompletion({
         model: 'text-davinci-003',
         prompt: prompt,
-        temperature: 0.5,
-        max_tokens: 4000,
+        temperature: 0,
+        max_tokens: 50,
       });
       const response = result.data.choices[0].text;
       setApiResponse(response);
@@ -514,75 +567,111 @@ const ChatScreen = ({navigation}) => {
 
   ////=========////=========////=========////=========////=========////=========////=========////=========////========= siri
 
-  const [isListening, setIsListening] = useState(false);
-  const [speechError, setSpeechError] = useState('');
-
-  const fadeAnim = useState(new Animated.Value(0))[0];
-
   useEffect(() => {
     Voice.onSpeechStart = onSpeechStart;
     Voice.onSpeechEnd = onSpeechEnd;
     Voice.onSpeechError = onSpeechError;
     Voice.onSpeechResults = onSpeechResults;
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
   }, []);
 
   const onSpeechStart = () => {
-    setIsListening(true);
-    setPrompt(''); // Clear the prompt
+    setPrompt('');
 
-    // Start the animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    setIsListening(true);
   };
 
   const onSpeechEnd = () => {
-    setIsListening(false);
-
-    // End the animation
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-
-    // Submit the prompt after a short delay
-    setTimeout(() => {
-      handleSubmit();
-    }, 500);
+    // setIsListening(false);
+    // handleSubmit();
   };
+
   const onSpeechError = error => {
     console.log('onSpeechError:', error);
-    setSpeechError(error.error.message);
-    setIsListening(false);
   };
 
   const onSpeechResults = event => {
-    console.log('onSpeechResults:', event);
     setPrompt(event.value[0]);
   };
 
-  const startListening = async () => {
-    try {
-      await Voice.start('en-US');
-    } catch (error) {
-      console.error('startListening error:', error);
-    }
+  const startListening = () => {
+    Voice.start('en-US');
   };
 
-  const stopListening = async () => {
-    try {
-      await Voice.stop();
-    } catch (error) {
-      console.error('stopListening error:', error);
-    }
+  const stopListening = () => {
+    Voice.stop();
+    handleSubmit();
   };
+
+  // const [isListening, setIsListening] = useState(false);
+  // const [speechError, setSpeechError] = useState('');
+
+  // useEffect(() => {
+  //   Voice.onSpeechStart = onSpeechStart;
+  //   Voice.onSpeechEnd = onSpeechEnd;
+  //   Voice.onSpeechError = onSpeechError;
+  //   Voice.onSpeechResults = onSpeechResults;
+
+  //   return () => {
+  //     Voice.destroy().then(Voice.removeAllListeners);
+  //   };
+  // }, [prompt]);
+
+  // const onSpeechStart = () => {
+  //   setIsListening(true);
+  //   setPrompt('');
+  // };
+
+  // const onSpeechEnd = () => {
+  //   setIsListening(false);
+
+  //   // End the animation
+
+  //   // Submit the prompt after a short delay
+  //   setTimeout(() => {
+  //     handleSubmit();
+  //   }, 500);
+  // };
+  // const onSpeechError = error => {
+  //   console.log('onSpeechError:', error);
+  //   setSpeechError(error.error.message);
+
+  //   setIsListening(false);
+
+  //   setConversation([
+  //     ...conversation,
+  //     // {
+  //     //   speaker: defaultValues.name,
+  //     //   message: prompt,
+  //     //   time: formattedDate,
+  //     // },
+  //     {
+  //       speaker: defaultValues.aiName,
+  //       message: `I'm sorry I didn't understand. Please try again!`,
+  //       time: formattedDate,
+  //     },
+  //   ]);
+  // };
+
+  // const onSpeechResults = event => {
+  //   console.log('onSpeechResults:', event);
+  //   setPrompt(event.value[0]);
+  // };
+
+  // const startListening = async () => {
+  //   try {
+  //     await Voice.start('en-US');
+  //   } catch (error) {
+  //     console.error('startListening error:', error);
+  //   }
+  // };
+
+  // const stopListening = async () => {
+  //   try {
+  //     await Voice.stop();
+  //   } catch (error) {
+  //     console.error('stopListening error:', error);
+  //   }
+  // };
 
   /////////=========////=========////=========////=========////=========////=========////=========////=========
 
@@ -600,13 +689,14 @@ const ChatScreen = ({navigation}) => {
       style={styles.container}
       behavior="padding"
       keyboardVerticalOffset={deviceHeight + 55}>
-      {error !== '' && (
+      {/* {error !== '' && (
         <View style={styles.responseContainer}>
           <Text style={styles.responseText}>{error}</Text>
         </View>
-      )}
+      )} */}
 
       <ScrollView
+        keyboardDismissMode="interactive"
         style={styles.conversationContainer}
         ref={scrollViewRef}
         onContentSizeChange={() =>
@@ -624,9 +714,9 @@ const ChatScreen = ({navigation}) => {
         ))}
       </ScrollView>
 
-      {isListening ? <DotLoader isLoading={isListening} /> : null}
-      <Button title="Get steps" onPress={handleSteps} />
-      <Button title="create table" onPress={createTable} />
+      {/* {isListening ? <DotLoader isLoading={isListening} /> : null} */}
+      {/* <Button title="Get steps" onPress={handleSteps} />
+      <Button title="create table" onPress={createTable} /> */}
 
       <View style={styles.inputWrapper}>
         <View style={styles.inputContainer}>
@@ -636,16 +726,22 @@ const ChatScreen = ({navigation}) => {
             onChangeText={setPrompt}
             placeholder="How many steps did I take today?"
             placeholderTextColor="#aaa"
+            returnKeyType="done"
           />
           <View style={styles.iconsContainer}>
             <TouchableOpacity onPress={handleSubmit}>
               {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
             </TouchableOpacity>
             <TouchableOpacity
-              style={{marginLeft: 5}}
-              onPressIn={startListening}
-              onPressOut={stopListening}>
-              <MicrophoneIcon />
+              style={{marginLeft: 5, marginRight: 5}}
+              // onPressIn={startListening}
+              // onPressOut={stopListening}
+              onPress={isListening ? stopListening : startListening}>
+              {isListening ? (
+                <DotLoader isLoading={isListening} />
+              ) : (
+                <MicrophoneIcon />
+              )}
             </TouchableOpacity>
           </View>
         </View>

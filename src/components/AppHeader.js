@@ -1,10 +1,13 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 
 import PriAILogo from '../assets/pri-ai-logo.svg';
+import AppContext from '../hoc/AppContext';
 
 const AppHeader = ({navigation, ...props}) => {
   const {routeName, rightButton} = props;
+
+  const {defaultValues, setDefaultValues, demo} = useContext(AppContext);
 
   return (
     <>
@@ -25,7 +28,9 @@ const AppHeader = ({navigation, ...props}) => {
             lineHeight: 28,
             marginLeft: 11,
           }}>
-          Pri-AI
+          {defaultValues.aiName === 'My AI Assistant'
+            ? 'Pri-AI'
+            : defaultValues.aiName}
         </Text>
       </View>
     </>
