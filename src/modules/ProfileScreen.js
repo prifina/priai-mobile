@@ -106,6 +106,7 @@ const ProfileScreen = ({navigation}) => {
   const permissions = {
     permissions: {
       read: [AppleHealthKit.Constants.Permissions.StepCount],
+      read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
     },
   };
 
