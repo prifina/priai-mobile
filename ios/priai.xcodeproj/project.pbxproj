@@ -549,7 +549,7 @@
 				CODE_SIGN_ENTITLEMENTS = priai/priai.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 3F966NFD22;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = priai/Info.plist;
@@ -583,7 +583,7 @@
 				CODE_SIGN_ENTITLEMENTS = priai/priai.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 3F966NFD22;
 				INFOPLIST_FILE = priai/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pri AI";

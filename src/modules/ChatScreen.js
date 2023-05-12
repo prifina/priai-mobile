@@ -43,6 +43,14 @@ import SQLite from 'react-native-sqlite-storage';
 
 import useDatabaseHooks from '../utils/useDatabaseHooks';
 
+import {
+  formatDateToHoursAndMinutes,
+  isSameDay,
+  addDays,
+  lastDayOfWeek,
+  monthNames,
+} from '../utils/dateUtils';
+
 import config from '../../config';
 
 const configuration = new Configuration({
@@ -56,12 +64,26 @@ const openai = new OpenAIApi(configuration);
 const ChatScreen = ({navigation}) => {
   const {defaultValues} = useContext(AppContext);
 
-  const {createTable, insertSteps, retrieveSteps, calculateAverageSteps} =
+  const {createTable, insertData, retrieveData, calculateAverage} =
     useDatabaseHooks();
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [prompt, setPrompt] = useState('');
+  const [apiResponse, setApiResponse] = useState('');
+  const [conversation, setConversation] = useState([]);
+  const [error, setError] = useState();
+
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
+
+  const [dataStatus, setDataStatus] = useState(false);
+
   const deviceHeight = useHeaderHeight();
+
+  const timeStamp = Date.now();
+
+  const formattedDate = formatDateToHoursAndMinutes(timeStamp);
 
   const handleClearChat = () => {
     setConversation([]);
@@ -84,154 +106,6 @@ const ChatScreen = ({navigation}) => {
       ),
     });
   }, [navigation]);
-
-  const [prompt, setPrompt] = useState('');
-  const [apiResponse, setApiResponse] = useState('');
-  const [conversation, setConversation] = useState([]);
-  const [error, setError] = useState();
-
-  const [isListening, setIsListening] = useState(false);
-  const [speechError, setSpeechError] = useState('');
-
-  const timeStamp = Date.now();
-
-  const formatDateToHoursAndMinutes = timestamp => {
-    const date = new Date(timestamp);
-
-    const dayNames = [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-    ];
-    const dayIndex = date.getDay();
-    const day = dayNames[dayIndex];
-
-    const timeString = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
-    });
-
-    return `${day} ${timeString}`;
-  };
-
-  const formattedDate = formatDateToHoursAndMinutes(timeStamp);
-
-  const [stepCount, setStepCount] = useState([]);
-
-  //////////=========////=========////=========////=========////=========////=========////=========////=========APPLE HEALTHKIT STEPS AND SQL
-  // const db = SQLite.openDatabase({
-  //   name: 'database.db',
-  //   createFromLocation: 1,
-  //   location: 'default',
-  // });
-
-  // console.log('db', db);
-
-  // const createTable = () => {
-  //   db.transaction(tx => {
-  //     tx.executeSql(
-  //       'CREATE TABLE IF NOT EXISTS Steps (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, steps INTEGER);',
-  //     );
-  //   });
-  // };
-
-  // const insertSteps = (date, steps) => {
-  //   db.transaction(tx => {
-  //     tx.executeSql('INSERT INTO Steps (date, steps) VALUES (?,?)', [
-  //       date,
-  //       steps,
-  //     ]);
-  //   });
-  // };
-
-  // const retrieveSteps = callback => {
-  //   db.transaction(tx => {
-  //     tx.executeSql('SELECT * FROM Steps', [], (tx, results) => {
-  //       let steps = [];
-  //       for (let i = 0; i < results.rows.length; i++) {
-  //         steps.push(results.rows.item(i));
-  //       }
-  //       callback(steps);
-  //     });
-  //   });
-  // };
-
-  // const calculateAverageSteps = (startDate, endDate, callback) => {
-  //   db.transaction(tx => {
-  //     tx.executeSql(
-  //       'SELECT AVG(steps) as average FROM Steps WHERE date BETWEEN ? AND ?',
-  //       [startDate.getTime(), endDate.getTime()],
-  //       (tx, results) => {
-  //         callback(results.rows.item(0).average);
-  //       },
-  //     );
-  //   });
-  // };
-
-  const isSameDay = (d1, d2) => {
-    const date1 = new Date(d1);
-    const date2 = new Date(d2);
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    );
-  };
-
-  const addDays = (date, days) => {
-    var result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  };
-
-  const parsePeriod = period => {
-    const [month, year] = period.split(' ');
-    const startDate = new Date(year, parseInt(month) - 1, 1);
-    const endDate = new Date(year, parseInt(month), 0);
-    return [startDate, endDate];
-  };
-
-  const monthNames = [
-    'january',
-    'february',
-    'march',
-    'april',
-    'may',
-    'june',
-    'july',
-    'august',
-    'september',
-    'october',
-    'november',
-    'december',
-  ];
-
-  const daysOfWeek = [
-    'sunday',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-  ];
-
-  const lastDayOfWeek = day => {
-    const today = new Date();
-    const lastDay = new Date(
-      today.setDate(
-        today.getDate() - ((7 + today.getDay() - daysOfWeek.indexOf(day)) % 7),
-      ),
-    );
-    return lastDay;
-  };
-
-  const [dataStatus, setDataStatus] = useState(false);
 
   const handleSteps = async () => {
     setIsLoading(true);
@@ -270,7 +144,7 @@ const ChatScreen = ({navigation}) => {
           });
 
           for (const [date, steps] of Object.entries(stepsPerDay)) {
-            insertSteps(date, steps);
+            insertData('Steps', 'steps', date, steps);
           }
 
           setIsLoading(false);
@@ -294,8 +168,8 @@ const ChatScreen = ({navigation}) => {
   };
 
   useEffect(() => {
-    handleSteps();
-    createTable();
+    // handleSteps();
+    createTable('Steps', 'steps');
   }, []);
 
   const handleSubmit = async () => {
@@ -303,7 +177,7 @@ const ChatScreen = ({navigation}) => {
 
     if (prompt.toLowerCase().includes('steps')) {
       if (prompt.toLowerCase().includes('today')) {
-        retrieveSteps(steps => {
+        retrieveData('Steps', steps => {
           const todaySteps = steps.find(step =>
             isSameDay(new Date(step.date), new Date()),
           );
@@ -343,7 +217,7 @@ const ChatScreen = ({navigation}) => {
       } else if (prompt.toLowerCase().includes('last')) {
         for (let day of daysOfWeek) {
           if (prompt.toLowerCase().includes(`last ${day}`)) {
-            retrieveSteps(steps => {
+            retrieveData('Steps', steps => {
               const lastDaySteps = steps.find(step =>
                 isSameDay(new Date(step.date), lastDayOfWeek(day)),
               );
@@ -387,7 +261,7 @@ const ChatScreen = ({navigation}) => {
           }
         }
       } else if (prompt.toLowerCase().includes('yesterday')) {
-        retrieveSteps(steps => {
+        retrieveData('Steps', steps => {
           const yesterdaySteps = steps.find(step =>
             isSameDay(new Date(step.date), addDays(new Date(), -1)),
           );
@@ -436,7 +310,7 @@ const ChatScreen = ({navigation}) => {
           const startDate = new Date(match[1]);
           const endDate = new Date(match[2]);
           if (startDate && endDate) {
-            calculateAverageSteps(startDate, endDate, average => {
+            calculateAverage('Steps', 'steps', startDate, endDate, average => {
               setApiResponse(
                 `Your average steps from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
                   average,
@@ -482,7 +356,7 @@ const ChatScreen = ({navigation}) => {
             : new Date().getFullYear(); // If year is not specified, use current year
           const selectedDate = new Date(year, month, day);
 
-          retrieveSteps(steps => {
+          retrieveData('Steps', steps => {
             const selectedDateSteps = steps.find(step =>
               isSameDay(new Date(step.date), selectedDate),
             );
@@ -541,6 +415,8 @@ const ChatScreen = ({navigation}) => {
       setPrompt('');
       return;
     }
+
+    ///here implement calories statement
 
     try {
       const result = await openai.createCompletion({
@@ -601,77 +477,6 @@ const ChatScreen = ({navigation}) => {
     Voice.stop();
     handleSubmit();
   };
-
-  // const [isListening, setIsListening] = useState(false);
-  // const [speechError, setSpeechError] = useState('');
-
-  // useEffect(() => {
-  //   Voice.onSpeechStart = onSpeechStart;
-  //   Voice.onSpeechEnd = onSpeechEnd;
-  //   Voice.onSpeechError = onSpeechError;
-  //   Voice.onSpeechResults = onSpeechResults;
-
-  //   return () => {
-  //     Voice.destroy().then(Voice.removeAllListeners);
-  //   };
-  // }, [prompt]);
-
-  // const onSpeechStart = () => {
-  //   setIsListening(true);
-  //   setPrompt('');
-  // };
-
-  // const onSpeechEnd = () => {
-  //   setIsListening(false);
-
-  //   // End the animation
-
-  //   // Submit the prompt after a short delay
-  //   setTimeout(() => {
-  //     handleSubmit();
-  //   }, 500);
-  // };
-  // const onSpeechError = error => {
-  //   console.log('onSpeechError:', error);
-  //   setSpeechError(error.error.message);
-
-  //   setIsListening(false);
-
-  //   setConversation([
-  //     ...conversation,
-  //     // {
-  //     //   speaker: defaultValues.name,
-  //     //   message: prompt,
-  //     //   time: formattedDate,
-  //     // },
-  //     {
-  //       speaker: defaultValues.aiName,
-  //       message: `I'm sorry I didn't understand. Please try again!`,
-  //       time: formattedDate,
-  //     },
-  //   ]);
-  // };
-
-  // const onSpeechResults = event => {
-  //   console.log('onSpeechResults:', event);
-  //   setPrompt(event.value[0]);
-  // };
-
-  // const startListening = async () => {
-  //   try {
-  //     await Voice.start('en-US');
-  //   } catch (error) {
-  //     console.error('startListening error:', error);
-  //   }
-  // };
-
-  // const stopListening = async () => {
-  //   try {
-  //     await Voice.stop();
-  //   } catch (error) {
-  //     console.error('stopListening error:', error);
-  //   }
-  // };
 
   /////////=========////=========////=========////=========////=========////=========////=========////=========
 
