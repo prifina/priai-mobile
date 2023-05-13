@@ -105,39 +105,71 @@ const ProfileScreen = ({navigation}) => {
 
   const permissions = {
     permissions: {
-      read: [AppleHealthKit.Constants.Permissions.StepCount],
-      read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
+      // read: [AppleHealthKit.Constants.Permissions.StepCount],
+      // read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
+      read: [
+        'Height',
+        'Weight',
+        'StepCount',
+        'DateOfBirth',
+        'BodyMassIndex',
+        'HeartRate',
+        'FlightsClimbed',
+      ],
     },
   };
 
-  useEffect(() => {
-    AppleHealthKit.initHealthKit(permissions, error => {
-      /* Called after we receive a response from the system */
+  // useEffect(() => {
+  //   AppleHealthKit.initHealthKit(permissions, error => {
+  //     /* Called after we receive a response from the system */
 
-      if (error) {
-        console.log('[ERROR] Cannot grant permissions!');
-        setIsAuthorized(false);
-      }
-      {
-        setIsAuthorized(true);
-      }
-    });
+  //     var currentDate = new Date();
+  //     var twoWeeksAgo = new Date(
+  //       currentDate.getTime() - 14 * 24 * 60 * 60 * 1000,
+  //     );
 
-    AppleHealthKit.isAvailable((err, available) => {
-      if (err) {
-        console.log('error initializing Healthkit: ', err);
-        setIsAuthorized(false);
+  //     var startDate = twoWeeksAgo.toISOString();
+  //     var endDate = currentDate.toISOString();
 
-        return;
-      }
-      if (available) {
-        console.log('success HK', available);
-        setIsAuthorized(true);
+  //     const options = {
+  //       startDate: startDate,
+  //       endDate: endDate,
+  //     };
 
-        return;
-      }
-    });
-  }, []);
+  //     AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
+  //       if (err) {
+  //         console.log('error getting steps:', err);
+  //         return;
+  //       }
+  //       console.log('results hehe', results);
+
+  //       // average steps
+  //     });
+
+  //     if (error) {
+  //       console.log('[ERROR] Cannot grant permissions!');
+  //       setIsAuthorized(false);
+  //     }
+  //     {
+  //       setIsAuthorized(true);
+  //     }
+  //   });
+
+  //   AppleHealthKit.isAvailable((err, available) => {
+  //     if (err) {
+  //       console.log('error initializing Healthkit: ', err);
+  //       setIsAuthorized(false);
+
+  //       return;
+  //     }
+  //     if (available) {
+  //       console.log('success HK', available);
+  //       setIsAuthorized(true);
+
+  //       return;
+  //     }
+  //   });
+  // }, []);
 
   const deviceHeight = useHeaderHeight();
 

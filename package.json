@@ -11,6 +11,7 @@
     "clean": "watchman watch-del-all && rm -rf yarn.lock && rm -rf node_modules && yarn install"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.18.1",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-voice/voice": "^3.2.4",
     "@react-navigation/bottom-tabs": "^6.5.7",

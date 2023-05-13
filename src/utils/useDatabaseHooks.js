@@ -2,13 +2,39 @@ import {useEffect} from 'react';
 import SQLite from 'react-native-sqlite-storage';
 
 const useDatabaseHooks = () => {
-  const db = SQLite.openDatabase({
-    name: 'database.db',
-    createFromLocation: 1,
-    location: 'default',
-  });
+  const db = SQLite.openDatabase(
+    {
+      name: 'priai-database.db',
+      createFromLocation: 1,
+      location: 'default',
+    },
+    () => {
+      console.log('Database opened successfully');
+    },
+    error => {
+      console.log('Error opening database:', error);
+    },
+  );
+
+  // console.log('db', db);
+
+  const deleteTable = tableName => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `DROP TABLE IF EXISTS ${tableName}`,
+        [],
+        (_, result) => {
+          console.log('Table deleted successfully', result);
+        },
+        (_, error) => {
+          console.log('Error deleting table:', error);
+        },
+      );
+    });
+  };
 
   useEffect(() => {
+    // deleteTable('Calories');
     createTable('Steps', 'steps');
     createTable('Calories', 'calories');
   }, []);
@@ -16,7 +42,7 @@ const useDatabaseHooks = () => {
   const createTable = (tableName, columnName) => {
     db.transaction(tx => {
       tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, ${columnName} INTEGER);`,
+        `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, ${columnName} DECIMAL);`,
       );
     });
   };
@@ -24,8 +50,14 @@ const useDatabaseHooks = () => {
   const insertData = (tableName, columnName, date, value) => {
     db.transaction(tx => {
       tx.executeSql(
-        `INSERT INTO ${tableName} (date, ${columnName}) VALUES (?,?)`,
-        [date, value],
+        `INSERT INTO ${tableName} (${columnName}, date) VALUES (?, ?)`,
+        [value, date],
+        (_, result) => {
+          console.log('Data inserted successfully', result);
+        },
+        (_, error) => {
+          console.log('Error inserting data:', error);
+        },
       );
     });
   };
@@ -62,6 +94,7 @@ const useDatabaseHooks = () => {
 
   return {
     createTable,
+    deleteTable,
     insertData,
     retrieveData,
     calculateAverage,
@@ -69,115 +102,3 @@ const useDatabaseHooks = () => {
 };
 
 export default useDatabaseHooks;
-
-// import {useEffect} from 'react';
-// import SQLite from 'react-native-sqlite-storage';
-
-// const useDatabaseHooks = () => {
-//   const db = SQLite.openDatabase({
-//     name: 'database.db',
-//     createFromLocation: 1,
-//     location: 'default',
-//   });
-
-//   useEffect(() => {
-//     createTable();
-//   }, []);
-
-//   const createTable = () => {
-//     db.transaction(tx => {
-//       tx.executeSql(
-//         'CREATE TABLE IF NOT EXISTS Steps (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, steps INTEGER);',
-//       );
-//     });
-//   };
-
-//   const insertSteps = (date, steps) => {
-//     db.transaction(tx => {
-//       tx.executeSql('INSERT INTO Steps (date, steps) VALUES (?,?)', [
-//         date,
-//         steps,
-//       ]);
-//     });
-//   };
-
-//   const retrieveSteps = callback => {
-//     db.transaction(tx => {
-//       tx.executeSql('SELECT * FROM Steps', [], (tx, results) => {
-//         let steps = [];
-//         for (let i = 0; i < results.rows.length; i++) {
-//           steps.push(results.rows.item(i));
-//         }
-//         callback(steps);
-//       });
-//     });
-//   };
-
-//   const calculateAverageSteps = (startDate, endDate, callback) => {
-//     db.transaction(tx => {
-//       tx.executeSql(
-//         'SELECT AVG(steps) as average FROM Steps WHERE date BETWEEN ? AND ?',
-//         [startDate.getTime(), endDate.getTime()],
-//         (tx, results) => {
-//           callback(results.rows.item(0).average);
-//         },
-//       );
-//     });
-//   };
-
-//   ////calories
-
-//   const createCaloriesTable = () => {
-//     db.transaction(tx => {
-//       tx.executeSql(
-//         'CREATE TABLE IF NOT EXISTS Calories (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, calories INTEGER);',
-//       );
-//     });
-//   };
-
-//   const insertCalories = (date, calories) => {
-//     db.transaction(tx => {
-//       tx.executeSql('INSERT INTO Calories (date, calories) VALUES (?,?)', [
-//         date,
-//         calories,
-//       ]);
-//     });
-//   };
-
-//   const retrieveCalories = callback => {
-//     db.transaction(tx => {
-//       tx.executeSql('SELECT * FROM Calories', [], (tx, results) => {
-//         let calories = [];
-//         for (let i = 0; i < results.rows.length; i++) {
-//           calories.push(results.rows.item(i));
-//         }
-//         callback(calories);
-//       });
-//     });
-//   };
-
-//   const calculateAverageCalories = (startDate, endDate, callback) => {
-//     db.transaction(tx => {
-//       tx.executeSql(
-//         'SELECT AVG(calories) as average FROM Calories WHERE date BETWEEN ? AND ?',
-//         [startDate.getTime(), endDate.getTime()],
-//         (tx, results) => {
-//           callback(results.rows.item(0).average);
-//         },
-//       );
-//     });
-//   };
-
-//   return {
-//     createTable,
-//     insertSteps,
-//     retrieveSteps,
-//     calculateAverageSteps,
-//     createCaloriesTable,
-//     insertCalories,
-//     retrieveCalories,
-//     calculateAverageCalories,
-//   };
-// };
-
-// export default useDatabaseHooks;

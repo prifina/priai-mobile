@@ -26,8 +26,6 @@ import {
 
 import MainNavigator from './src/navigation/MainNavigator';
 
-import AppContext from './src/hoc/AppContext';
-
 function App() {
   // Amplify.configure(awsConfig);
 
@@ -37,18 +35,10 @@ function App() {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const [defaultValues, setDefaultValues] = useState({
-    name: 'User',
-    aiName: 'My AI Assistant',
-    email: '',
-  });
-
-  const demo = false;
-
   return (
-    <AppContext.Provider value={{defaultValues, setDefaultValues, demo}}>
+    <>
       <MainNavigator />
-    </AppContext.Provider>
+    </>
   );
 }
 

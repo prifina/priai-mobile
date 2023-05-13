@@ -41,6 +41,8 @@ import Divider from '../components/Divider';
 
 import SQLite from 'react-native-sqlite-storage';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import useDatabaseHooks from '../utils/useDatabaseHooks';
 
 import {
@@ -49,9 +51,13 @@ import {
   addDays,
   lastDayOfWeek,
   monthNames,
+  daysOfWeek,
 } from '../utils/dateUtils';
 
 import config from '../../config';
+import Toast from '../components/Toast';
+
+import useToast from '../utils/useToast';
 
 const configuration = new Configuration({
   apiKey: config.OPENAI_API_KEY,
@@ -62,10 +68,12 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const ChatScreen = ({navigation}) => {
-  const {defaultValues} = useContext(AppContext);
+  const {defaultValues, checkHKStatus} = useContext(AppContext);
 
   const {createTable, insertData, retrieveData, calculateAverage} =
     useDatabaseHooks();
+
+  const {toastConfig, showToast, hideToast} = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -79,6 +87,8 @@ const ChatScreen = ({navigation}) => {
 
   const [dataStatus, setDataStatus] = useState(false);
 
+  const [firstLaunch, setFirstLaunch] = useState(null);
+
   const deviceHeight = useHeaderHeight();
 
   const timeStamp = Date.now();
@@ -87,9 +97,11 @@ const ChatScreen = ({navigation}) => {
 
   const handleClearChat = () => {
     setConversation([]);
-    setIsLoading(false);
 
+    setIsLoading(false);
     setIsListening(false);
+
+    showToast('Your action was successful!', 'warning');
   };
 
   useLayoutEffect(() => {
@@ -107,69 +119,159 @@ const ChatScreen = ({navigation}) => {
     });
   }, [navigation]);
 
-  const handleSteps = async () => {
-    setIsLoading(true);
-
-    try {
-      const permissions = {
-        permissions: {
-          read: [AppleHealthKit.Constants.Permissions.StepCount],
-        },
-      };
-
-      AppleHealthKit.initHealthKit(permissions, error => {
-        if (error) {
-          console.log('[ERROR] Cannot grant permissions!');
+  // check for first launch
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const value = await AsyncStorage.getItem('firstLaunch');
+        if (value === null) {
+          // first launch, set firstLaunch in AsyncStorage to false
+          await AsyncStorage.setItem('firstLaunch', 'false');
+          setFirstLaunch(true);
+        } else {
+          setFirstLaunch(false);
         }
+      } catch (error) {
+        // error trying to get value from AsyncStorage
+        console.log('AsyncStorage Error: ' + error);
+      }
+    };
+    checkFirstLaunch();
+  }, []);
 
-        // past year
-        const options = {
-          startDate: new Date(2023, 0, 1).toISOString(),
-          endDate: new Date().toISOString(),
-        };
-
-        AppleHealthKit.getSamples(options, (err, results) => {
-          if (err) {
-            console.log('error getting steps:', err);
-            return;
-          }
-          console.log('results', results);
-
-          // average steps
-          const stepsPerDay = {};
-
-          results.forEach(entry => {
-            const date = new Date(entry.start).toDateString(); // convert start time to date string - ignore hours  minutes  seconds
-            stepsPerDay[date] = (stepsPerDay[date] || 0) + entry.quantity; // accumulate steps per day
-          });
-
-          for (const [date, steps] of Object.entries(stepsPerDay)) {
-            insertData('Steps', 'steps', date, steps);
-          }
-
-          setIsLoading(false);
-          setDataStatus(true);
-        });
-      });
-    } catch (e) {
-      console.log(e);
-      setApiResponse('Something went wrong.');
-      setError(e);
-      setIsLoading(false);
-      setDataStatus(false);
-
-      Alert.alert(
-        'Error',
-        `Failed to retrieve health data. Please try again. ${error}`,
-        [{text: 'OK', onPress: () => console.log('OK pressed')}],
-        {cancelable: false},
-      );
+  useEffect(() => {
+    if (firstLaunch === true) {
+      checkHKStatus();
     }
-  };
+  }, [firstLaunch]);
+
+  // const handleSteps = async () => {
+  //   setIsLoading(true);
+
+  //   try {
+  //     const permissions = {
+  //       permissions: {
+  //         read: [AppleHealthKit.Constants.Permissions.StepCount],
+  //       },
+  //     };
+
+  //     AppleHealthKit.initHealthKit(permissions, error => {
+  //       if (error) {
+  //         console.log('[ERROR] Cannot grant permissions!');
+  //       }
+
+  //       // past year
+  //       const options = {
+  //         startDate: new Date(2023, 0, 1).toISOString(),
+  //         endDate: new Date().toISOString(),
+  //       };
+
+  //       AppleHealthKit.getSamples(options, (err, results) => {
+  //         if (err) {
+  //           console.log('error getting steps:', err);
+  //           return;
+  //         }
+  //         console.log('results', results);
+
+  //         // average steps
+  //         const stepsPerDay = {};
+
+  //         results.forEach(entry => {
+  //           const date = new Date(entry.start).toDateString(); // convert start time to date string - ignore hours  minutes  seconds
+  //           stepsPerDay[date] = (stepsPerDay[date] || 0) + entry.quantity; // accumulate steps per day
+  //         });
+
+  //         for (const [date, steps] of Object.entries(stepsPerDay)) {
+  //           insertData('Steps', 'steps', date, steps);
+  //         }
+
+  //         setIsLoading(false);
+  //         setDataStatus(true);
+  //       });
+  //     });
+  //   } catch (e) {
+  //     console.log(e);
+  //     setApiResponse('Something went wrong.');
+  //     setError(e);
+  //     setIsLoading(false);
+  //     setDataStatus(false);
+
+  //     Alert.alert(
+  //       'Error',
+  //       `Failed to retrieve health data. Please try again. ${error}`,
+  //       [{text: 'OK', onPress: () => console.log('OK pressed')}],
+  //       {cancelable: false},
+  //     );
+  //   }
+  // };
+
+  // const handleCalories = async () => {
+  //   setIsLoading(true);
+
+  //   try {
+  //     const permissions = {
+  //       permissions: {
+  //         read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
+  //       },
+  //     };
+
+  //     AppleHealthKit.initHealthKit(permissions, error => {
+  //       if (error) {
+  //         console.log('[ERROR] Cannot grant permissions!');
+  //       }
+
+  //       // past year
+  //       const options = {
+  //         startDate: new Date(2023, 0, 1).toISOString(),
+  //         endDate: new Date().toISOString(),
+  //       };
+
+  //       AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
+  //         if (err) {
+  //           console.log('error getting calories:', err);
+  //           return;
+  //         }
+  //         // console.log('results', results);
+
+  //         // Calculate total calories burned per day
+  //         const caloriesPerDay = {};
+
+  //         results.forEach(entry => {
+  //           const date = new Date(entry.start).toDateString();
+  //           caloriesPerDay[date] = (caloriesPerDay[date] || 0) + entry.quantity;
+  //         });
+
+  //         for (const [date, calories] of Object.entries(caloriesPerDay)) {
+  //           insertData('Calories', 'calories', date, calories);
+  //         }
+
+  //         setIsLoading(false);
+  //         setDataStatus(true);
+  //       });
+  //     });
+  //   } catch (e) {
+  //     console.log(e);
+  //     setApiResponse('Something went wrong.');
+  //     setError(e);
+  //     setIsLoading(false);
+  //     setDataStatus(false);
+
+  //     Alert.alert(
+  //       'Error',
+  //       `Failed to retrieve health data. Please try again. ${error}`,
+  //       [{text: 'OK', onPress: () => console.log('OK pressed')}],
+  //       {cancelable: false},
+  //     );
+  //   }
+  // };
 
   useEffect(() => {
     // handleSteps();
-    createTable('Steps', 'steps');
+    // handleCalories();
+    // retrieveData('Calories', calories => {
+    //   const todaySteps = calories;
+    //   console.log('custom', todaySteps);
+    // });
   }, []);
 
   const handleSubmit = async () => {
@@ -417,6 +519,246 @@ const ChatScreen = ({navigation}) => {
     }
 
     ///here implement calories statement
+    if (prompt.toLowerCase().includes('calories')) {
+      if (prompt.toLowerCase().includes('today')) {
+        retrieveData('Calories', calories => {
+          const todayCalories = calories.find(calorie =>
+            isSameDay(new Date(calorie.date), new Date()),
+          );
+          if (todayCalories) {
+            setApiResponse(
+              `You have burned ${todayCalories.calories} calories today.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned ${todayCalories.calories} calories today.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have burned 0 calories today.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned 0 calories today.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('last')) {
+        for (let day of daysOfWeek) {
+          if (prompt.toLowerCase().includes(`last ${day}`)) {
+            retrieveData('Calories', calories => {
+              const lastDayCalories = calories.find(calorie =>
+                isSameDay(new Date(calorie.date), lastDayOfWeek(day)),
+              );
+              if (lastDayCalories) {
+                setApiResponse(
+                  `You have burned ${lastDayCalories.calories} calories last ${day}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have burned ${lastDayCalories.calories} calories last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              } else {
+                setApiResponse(`You have burned 0 calories last ${day}.`);
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have burned 0 calories last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              }
+            });
+            break;
+          }
+        }
+      } else if (prompt.toLowerCase().includes('yesterday')) {
+        retrieveData('Calories', calories => {
+          const yesterdayCalories = calories.find(calorie =>
+            isSameDay(new Date(calorie.date), addDays(new Date(), -1)),
+          );
+          if (yesterdayCalories) {
+            setApiResponse(
+              `You have burned ${yesterdayCalories.calories} calories yesterday.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned ${yesterdayCalories.calories} calories yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have burned 0 calories yesterday.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned 0 calories yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('average')) {
+        // Parse date range from user input
+        const dateRegex =
+          /average from ([a-zA-Z]+\s\d{1,2},\s\d{4}) to ([a-zA-Z]+\s\d{1,2},\s\d{4})/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const startDate = new Date(match[1]);
+          const endDate = new Date(match[2]);
+          if (startDate && endDate) {
+            calculateAverage(
+              'Calories',
+              'calories',
+              startDate,
+              endDate,
+              average => {
+                setApiResponse(
+                  ` Your average calories burned from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                    average,
+                  )}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `Your average calories burned from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                      average,
+                    )}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              },
+            );
+          } else {
+            setApiResponse(
+              'Sorry, I did not understand the date range. Please use the format "Month Day, Year".',
+            );
+            setIsLoading(false);
+          }
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+        }
+      } else if (prompt.toLowerCase().includes('on')) {
+        // Retrieve calories burned for a specific date
+        const dateRegex =
+          /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const month = monthNames.indexOf(match[1].toLowerCase());
+          const day = parseInt(match[2], 10);
+          const year = match[3]
+            ? parseInt(match[3], 10)
+            : new Date().getFullYear();
+          const selectedDate = new Date(year, month, day);
+          retrieveData('Calories', calories => {
+            const selectedDateCalories = calories.find(calorie =>
+              isSameDay(new Date(calorie.date), selectedDate),
+            );
+            if (selectedDateCalories) {
+              setApiResponse(
+                `You have burned ${
+                  selectedDateCalories.calories
+                } calories on ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `You have burned ${
+                    selectedDateCalories.calories
+                  } calories on ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            } else {
+              setApiResponse(
+                `No calorie data available for ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `No calorie data available for ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            }
+          });
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+        }
+      } else {
+        setApiResponse('Sorry, I did not understand your question.');
+        setIsLoading(false);
+      }
+      setIsLoading(false);
+      setIsListening(false);
+      setPrompt('');
+      return;
+    }
+    /////
 
     try {
       const result = await openai.createCompletion({
@@ -494,11 +836,10 @@ const ChatScreen = ({navigation}) => {
       style={styles.container}
       behavior="padding"
       keyboardVerticalOffset={deviceHeight + 55}>
-      {/* {error !== '' && (
-        <View style={styles.responseContainer}>
-          <Text style={styles.responseText}>{error}</Text>
-        </View>
-      )} */}
+      {/* add error state */}
+      {toastConfig && (
+        <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
+      )}
 
       <ScrollView
         keyboardDismissMode="interactive"
@@ -525,6 +866,7 @@ const ChatScreen = ({navigation}) => {
 
       <View style={styles.inputWrapper}>
         <View style={styles.inputContainer}>
+          <Button title="check" onPress={checkHKStatus} />
           <TextInput
             style={styles.input}
             value={prompt}
@@ -582,7 +924,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
-    // borderRadius: 10,
     paddingVertical: 6,
     paddingHorizontal: 24,
     height: 48,
@@ -615,20 +956,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-  },
-  siriButton: {
-    marginLeft: 10,
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 15,
-    paddingVertical: 2,
-    borderRadius: 10,
-    height: 30,
-    justifyContent: 'center',
-  },
-  siriButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

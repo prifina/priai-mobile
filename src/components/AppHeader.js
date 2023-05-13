@@ -22,11 +22,11 @@ const AppHeader = ({navigation, ...props}) => {
         <PriAILogo />
         <Text
           style={{
-            fontSize: 18,
-            fontWeight: 600,
-            color: '#667085',
-            lineHeight: 28,
-            marginLeft: 11,
+            fontSize: 20,
+            fontWeight: 700,
+            color: '#134E48',
+            lineHeight: 30,
+            marginLeft: 10,
           }}>
           {defaultValues.aiName === 'My AI Assistant'
             ? 'Pri-AI'

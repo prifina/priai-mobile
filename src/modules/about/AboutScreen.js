@@ -23,7 +23,7 @@ const AboutScreen = ({navigation}) => {
         </View>
       </View>
       <Text style={{fontSize: 16, marginBottom: 24}}>
-        Pri-AI is a privacy-first chatbot app developed by Prifina.inc, which
+        Pri-AI is a privacy-first chatbot app developed by Prifina Inc, which
         extends Chat-GPT’s capabilities by integrating real data from your
         applications and devices.
       </Text>
