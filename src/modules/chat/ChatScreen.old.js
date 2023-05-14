@@ -1,3 +1,132 @@
+// const handleSteps = async () => {
+//   setIsLoading(true);
+
+//   try {
+//     const permissions = {
+//       permissions: {
+//         read: [AppleHealthKit.Constants.Permissions.StepCount],
+//       },
+//     };
+
+//     AppleHealthKit.initHealthKit(permissions, error => {
+//       if (error) {
+//         console.log('[ERROR] Cannot grant permissions!');
+//       }
+
+//       // past year
+//       const options = {
+//         startDate: new Date(2023, 0, 1).toISOString(),
+//         endDate: new Date().toISOString(),
+//       };
+
+//       AppleHealthKit.getSamples(options, (err, results) => {
+//         if (err) {
+//           console.log('error getting steps:', err);
+//           return;
+//         }
+//         console.log('results', results);
+
+//         // average steps
+//         const stepsPerDay = {};
+
+//         results.forEach(entry => {
+//           const date = new Date(entry.start).toDateString(); // convert start time to date string - ignore hours  minutes  seconds
+//           stepsPerDay[date] = (stepsPerDay[date] || 0) + entry.quantity; // accumulate steps per day
+//         });
+
+//         for (const [date, steps] of Object.entries(stepsPerDay)) {
+//           insertData('Steps', 'steps', date, steps);
+//         }
+
+//         setIsLoading(false);
+//         setDataStatus(true);
+//       });
+//     });
+//   } catch (e) {
+//     console.log(e);
+//     setApiResponse('Something went wrong.');
+//     setError(e);
+//     setIsLoading(false);
+//     setDataStatus(false);
+
+//     Alert.alert(
+//       'Error',
+//       `Failed to retrieve health data. Please try again. ${error}`,
+//       [{text: 'OK', onPress: () => console.log('OK pressed')}],
+//       {cancelable: false},
+//     );
+//   }
+// };
+
+// const handleCalories = async () => {
+//   setIsLoading(true);
+
+//   try {
+//     const permissions = {
+//       permissions: {
+//         read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
+//       },
+//     };
+
+//     AppleHealthKit.initHealthKit(permissions, error => {
+//       if (error) {
+//         console.log('[ERROR] Cannot grant permissions!');
+//       }
+
+//       // past year
+//       const options = {
+//         startDate: new Date(2023, 0, 1).toISOString(),
+//         endDate: new Date().toISOString(),
+//       };
+
+//       AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
+//         if (err) {
+//           console.log('error getting calories:', err);
+//           return;
+//         }
+//         // console.log('results', results);
+
+//         // Calculate total calories burned per day
+//         const caloriesPerDay = {};
+
+//         results.forEach(entry => {
+//           const date = new Date(entry.start).toDateString();
+//           caloriesPerDay[date] = (caloriesPerDay[date] || 0) + entry.quantity;
+//         });
+
+//         for (const [date, calories] of Object.entries(caloriesPerDay)) {
+//           insertData('Calories', 'calories', date, calories);
+//         }
+
+//         setIsLoading(false);
+//         setDataStatus(true);
+//       });
+//     });
+//   } catch (e) {
+//     console.log(e);
+//     setApiResponse('Something went wrong.');
+//     setError(e);
+//     setIsLoading(false);
+//     setDataStatus(false);
+
+//     Alert.alert(
+//       'Error',
+//       `Failed to retrieve health data. Please try again. ${error}`,
+//       [{text: 'OK', onPress: () => console.log('OK pressed')}],
+//       {cancelable: false},
+//     );
+//   }
+// };
+
+// useEffect(() => {
+// handleSteps();
+// handleCalories();
+// retrieveData('Calories', calories => {
+//   const todaySteps = calories;
+//   console.log('custom', todaySteps);
+// });
+// }, []);
+
 import 'react-native-url-polyfill/auto';
 
 import React, {useState, useLayoutEffect, useContext, useEffect} from 'react';
@@ -25,7 +154,6 @@ import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';
 
 import Voice from '@react-native-voice/voice';
-import ListeningAnimation from '../components/ListeningAnimation';
 
 import SendIcon from '../assets/send-icon.svg';
 import MicrophoneIcon from '../assets/microphone.svg';

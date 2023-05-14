@@ -25,21 +25,14 @@ import {useHeaderHeight} from '@react-navigation/elements';
 
 import {Configuration, OpenAIApi} from 'openai';
 
-import AppleHealthKit from 'react-native-health';
-import ContentWrapper from '../components/ContentWrapper';
-
 import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';
 
 import Voice from '@react-native-voice/voice';
-import ListeningAnimation from '../components/ListeningAnimation';
 
 import SendIcon from '../assets/send-icon.svg';
 import MicrophoneIcon from '../assets/microphone.svg';
 import ChatItem from './chat/ChatItem';
-import Divider from '../components/Divider';
-
-import SQLite from 'react-native-sqlite-storage';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -85,8 +78,6 @@ const ChatScreen = ({navigation}) => {
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState('');
 
-  const [dataStatus, setDataStatus] = useState(false);
-
   const [firstLaunch, setFirstLaunch] = useState(null);
 
   const deviceHeight = useHeaderHeight();
@@ -101,23 +92,24 @@ const ChatScreen = ({navigation}) => {
     setIsLoading(false);
     setIsListening(false);
 
-    showToast('Your action was successful!', 'warning');
+    showToast('Your action was successful!', 'success');
   };
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{marginRight: 16}}
-          onPress={() => handleClearChat()}
-          title="Save">
-          <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
-            Clear chat
-          </Text>
-        </TouchableOpacity>
-      ),
+      headerRight: () =>
+        conversation.length !== 0 ? (
+          <TouchableOpacity
+            style={{marginRight: 16}}
+            onPress={() => handleClearChat()}
+            title="Save">
+            <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
+              Clear chat
+            </Text>
+          </TouchableOpacity>
+        ) : null,
     });
-  }, [navigation]);
+  }, [conversation]);
 
   // check for first launch
   useEffect(() => {
@@ -144,135 +136,6 @@ const ChatScreen = ({navigation}) => {
       checkHKStatus();
     }
   }, [firstLaunch]);
-
-  // const handleSteps = async () => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     const permissions = {
-  //       permissions: {
-  //         read: [AppleHealthKit.Constants.Permissions.StepCount],
-  //       },
-  //     };
-
-  //     AppleHealthKit.initHealthKit(permissions, error => {
-  //       if (error) {
-  //         console.log('[ERROR] Cannot grant permissions!');
-  //       }
-
-  //       // past year
-  //       const options = {
-  //         startDate: new Date(2023, 0, 1).toISOString(),
-  //         endDate: new Date().toISOString(),
-  //       };
-
-  //       AppleHealthKit.getSamples(options, (err, results) => {
-  //         if (err) {
-  //           console.log('error getting steps:', err);
-  //           return;
-  //         }
-  //         console.log('results', results);
-
-  //         // average steps
-  //         const stepsPerDay = {};
-
-  //         results.forEach(entry => {
-  //           const date = new Date(entry.start).toDateString(); // convert start time to date string - ignore hours  minutes  seconds
-  //           stepsPerDay[date] = (stepsPerDay[date] || 0) + entry.quantity; // accumulate steps per day
-  //         });
-
-  //         for (const [date, steps] of Object.entries(stepsPerDay)) {
-  //           insertData('Steps', 'steps', date, steps);
-  //         }
-
-  //         setIsLoading(false);
-  //         setDataStatus(true);
-  //       });
-  //     });
-  //   } catch (e) {
-  //     console.log(e);
-  //     setApiResponse('Something went wrong.');
-  //     setError(e);
-  //     setIsLoading(false);
-  //     setDataStatus(false);
-
-  //     Alert.alert(
-  //       'Error',
-  //       `Failed to retrieve health data. Please try again. ${error}`,
-  //       [{text: 'OK', onPress: () => console.log('OK pressed')}],
-  //       {cancelable: false},
-  //     );
-  //   }
-  // };
-
-  // const handleCalories = async () => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     const permissions = {
-  //       permissions: {
-  //         read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
-  //       },
-  //     };
-
-  //     AppleHealthKit.initHealthKit(permissions, error => {
-  //       if (error) {
-  //         console.log('[ERROR] Cannot grant permissions!');
-  //       }
-
-  //       // past year
-  //       const options = {
-  //         startDate: new Date(2023, 0, 1).toISOString(),
-  //         endDate: new Date().toISOString(),
-  //       };
-
-  //       AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
-  //         if (err) {
-  //           console.log('error getting calories:', err);
-  //           return;
-  //         }
-  //         // console.log('results', results);
-
-  //         // Calculate total calories burned per day
-  //         const caloriesPerDay = {};
-
-  //         results.forEach(entry => {
-  //           const date = new Date(entry.start).toDateString();
-  //           caloriesPerDay[date] = (caloriesPerDay[date] || 0) + entry.quantity;
-  //         });
-
-  //         for (const [date, calories] of Object.entries(caloriesPerDay)) {
-  //           insertData('Calories', 'calories', date, calories);
-  //         }
-
-  //         setIsLoading(false);
-  //         setDataStatus(true);
-  //       });
-  //     });
-  //   } catch (e) {
-  //     console.log(e);
-  //     setApiResponse('Something went wrong.');
-  //     setError(e);
-  //     setIsLoading(false);
-  //     setDataStatus(false);
-
-  //     Alert.alert(
-  //       'Error',
-  //       `Failed to retrieve health data. Please try again. ${error}`,
-  //       [{text: 'OK', onPress: () => console.log('OK pressed')}],
-  //       {cancelable: false},
-  //     );
-  //   }
-  // };
-
-  useEffect(() => {
-    // handleSteps();
-    // handleCalories();
-    // retrieveData('Calories', calories => {
-    //   const todaySteps = calories;
-    //   console.log('custom', todaySteps);
-    // });
-  }, []);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -728,7 +591,7 @@ const ChatScreen = ({navigation}) => {
               ]);
             } else {
               setApiResponse(
-                `No calorie data available for ${selectedDate.toDateString()}.`,
+                `No calories data available for ${selectedDate.toDateString()}.`,
               );
               setConversation([
                 ...conversation,
@@ -739,7 +602,7 @@ const ChatScreen = ({navigation}) => {
                 },
                 {
                   speaker: defaultValues.aiName,
-                  message: `No calorie data available for ${selectedDate.toDateString()}.`,
+                  message: `No calories data available for ${selectedDate.toDateString()}.`,
                   time: formattedDate,
                 },
               ]);
