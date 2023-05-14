@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {
   SafeAreaView,
@@ -7,6 +7,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AppNavigator from './AppNavigator';
 import AuthNavigator from './AuthNavigator';
@@ -59,8 +61,36 @@ const MainNavigator = () => {
   const [defaultValues, setDefaultValues] = useState({
     name: 'User',
     aiName: 'My AI Assistant',
-    email: '',
+    email: 'mail@example.com',
   });
+
+  useEffect(() => {
+    setIsLoading(true);
+
+    const fetchData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem('profileData');
+        if (savedData) {
+          setDefaultValues(JSON.parse(savedData));
+          setIsLoading(false);
+
+          console.log('Data retrieved from AsyncStorage');
+        }
+      } catch (error) {
+        console.log('Error retrieving data from AsyncStorage:', error);
+
+        setDefaultValues(defaultValues);
+        Alert.alert(
+          'Error',
+          'Failed to retrieve profile data. Please set again.',
+          [{text: 'OK', onPress: () => console.log('OK pressed')}],
+        );
+      }
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, []);
 
   const demo = false;
 

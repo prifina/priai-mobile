@@ -59,8 +59,9 @@ const Toast = ({visible, message, type, onDismiss}) => {
 
 const styles = StyleSheet.create({
   toast: {
+    zIndex: 1,
     position: 'absolute',
-    top: 50,
+    top: 30,
     left: 20,
     right: 20,
     padding: 10,

@@ -22,6 +22,9 @@ import AppleHealthKit, {
   HealthValue,
   HealthKitPermissions,
 } from 'react-native-health';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import ContentWrapper from '../components/ContentWrapper';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -29,30 +32,65 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AppContext from '../hoc/AppContext';
 import Divider from '../components/Divider';
 
+import useToast from '../utils/useToast';
+import Toast from '../components/Toast';
+
 const ProfileScreen = ({navigation}) => {
   const {defaultValues, setDefaultValues, demo} = useContext(AppContext);
 
+  const [newValues, setNewValues] = useState({
+    name: defaultValues.name,
+    aiName: defaultValues.aiName,
+    email: defaultValues.email,
+  });
+
+  const {toastConfig, showToast, hideToast} = useToast();
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  console.log('visible', isVisible);
+
+  useEffect(() => {
+    const isDefaultEqualToNew = Object.keys(defaultValues).every(
+      key => defaultValues[key] === newValues[key],
+    );
+
+    setIsVisible(!isDefaultEqualToNew);
+  }, [newValues]);
+
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // console.log('def values', defaultValues);
+  const handleSave = async () => {
+    try {
+      await AsyncStorage.setItem('profileData', JSON.stringify(newValues));
+      setDefaultValues(newValues); // Update defaultValues with newValues
+      setIsVisible(false);
+      console.log('Data saved to AsyncStorage');
 
-  const handleSave = () => {
-    console.log('Nested state:', defaultValues);
+      showToast('Saved!', 'success');
+    } catch (error) {
+      console.log('Error saving data to AsyncStorage:', error);
+      showToast('Changes not saved!', 'error');
+    }
   };
-  useLayoutEffect(() => {
+
+  console.log('def values', defaultValues);
+
+  useEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{marginRight: 16}}
-          onPress={handleSave}
-          title="Save">
-          <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
-            Save
-          </Text>
-        </TouchableOpacity>
-      ),
+      headerRight: () =>
+        isVisible && (
+          <TouchableOpacity
+            style={{marginRight: 16}}
+            onPress={handleSave}
+            title="Save">
+            <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
+              Save
+            </Text>
+          </TouchableOpacity>
+        ),
     });
-  }, [navigation]);
+  }, [navigation, isVisible]);
 
   const openAppPrivacySettings = () => {
     const packageName = 'com.yourpackagename'; // Replace with your app's package name
@@ -63,120 +101,15 @@ const ProfileScreen = ({navigation}) => {
     Linking.openURL(url);
   };
 
-  /////APPLE HEALTHKIT
-
-  // /* Permission options */
-  // const permissions = {
-  //   permissions: {
-  //     read: [AppleHealthKit.Constants.Permissions.StepCount],
-  //   },
-  // };
-
-  // const options = {
-  //   startDate: new Date(2001, 0, 1).toISOString(),
-  //   endDate: new Date().toISOString(),
-  // };
-
-  // AppleHealthKit.initHealthKit(permissions, error => {
-  //   /* Called after we receive a response from the system */
-
-  //   if (error) {
-  //     console.log('[ERROR] Cannot grant permissions!');
-  //   }
-
-  //   /* Can now read or write to HealthKit */
-
-  //   AppleHealthKit.getHeartRateSamples(options, (callbackError, results) => {
-  //     /* Samples are now collected from HealthKit */
-  //   });
-  // });
-
-  // const [stepCount, setStepCount] = useState([]);
-
-  // AppleHealthKit.getStepCount(options, (err, results) => {
-  //   if (err) {
-  //     console.log('error results', err);
-
-  //     return;
-  //   }
-  //   console.log('results', results);
-  //   setStepCount(results.value);
-  // });
-
-  const permissions = {
-    permissions: {
-      // read: [AppleHealthKit.Constants.Permissions.StepCount],
-      // read: [AppleHealthKit.Constants.Permissions.ActiveEnergyBurned],
-      read: [
-        'Height',
-        'Weight',
-        'StepCount',
-        'DateOfBirth',
-        'BodyMassIndex',
-        'HeartRate',
-        'FlightsClimbed',
-      ],
-    },
-  };
-
-  // useEffect(() => {
-  //   AppleHealthKit.initHealthKit(permissions, error => {
-  //     /* Called after we receive a response from the system */
-
-  //     var currentDate = new Date();
-  //     var twoWeeksAgo = new Date(
-  //       currentDate.getTime() - 14 * 24 * 60 * 60 * 1000,
-  //     );
-
-  //     var startDate = twoWeeksAgo.toISOString();
-  //     var endDate = currentDate.toISOString();
-
-  //     const options = {
-  //       startDate: startDate,
-  //       endDate: endDate,
-  //     };
-
-  //     AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
-  //       if (err) {
-  //         console.log('error getting steps:', err);
-  //         return;
-  //       }
-  //       console.log('results hehe', results);
-
-  //       // average steps
-  //     });
-
-  //     if (error) {
-  //       console.log('[ERROR] Cannot grant permissions!');
-  //       setIsAuthorized(false);
-  //     }
-  //     {
-  //       setIsAuthorized(true);
-  //     }
-  //   });
-
-  //   AppleHealthKit.isAvailable((err, available) => {
-  //     if (err) {
-  //       console.log('error initializing Healthkit: ', err);
-  //       setIsAuthorized(false);
-
-  //       return;
-  //     }
-  //     if (available) {
-  //       console.log('success HK', available);
-  //       setIsAuthorized(true);
-
-  //       return;
-  //     }
-  //   });
-  // }, []);
-
   const deviceHeight = useHeaderHeight();
 
   return (
     <KeyboardAvoidingView
       behavior="padding"
       keyboardVerticalOffset={deviceHeight + 65}>
+      {toastConfig && (
+        <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
+      )}
       <ContentWrapper title="Profile and settings">
         <Text
           style={{
@@ -259,8 +192,10 @@ const ProfileScreen = ({navigation}) => {
                 padding: 10,
               }}
               placeholder="Enter your name"
-              value={defaultValues.name}
-              onChangeText={name => setDefaultValues({...defaultValues, name})}
+              value={newValues.name}
+              onChangeText={name => {
+                setNewValues({...newValues, name});
+              }}
               returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
@@ -280,10 +215,10 @@ const ProfileScreen = ({navigation}) => {
                 padding: 10,
               }}
               placeholder="Enter your name"
-              value={defaultValues.aiName}
-              onChangeText={aiName =>
-                setDefaultValues({...defaultValues, aiName})
-              }
+              value={newValues.aiName}
+              onChangeText={aiName => {
+                setNewValues({...newValues, aiName});
+              }}
               returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
@@ -303,10 +238,10 @@ const ProfileScreen = ({navigation}) => {
                 padding: 10,
               }}
               placeholder="Enter your name"
-              value={defaultValues.email}
-              onChangeText={email =>
-                setDefaultValues({...defaultValues, email})
-              }
+              value={newValues.email}
+              onChangeText={email => {
+                setNewValues({...newValues, email});
+              }}
               returnKeyType="done"
             />
             <Text style={{marginTop: 5, color: '#475467', fontWeight: 400}}>
