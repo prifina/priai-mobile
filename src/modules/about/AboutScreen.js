@@ -27,7 +27,7 @@ const AboutScreen = ({navigation}) => {
         extends Chat-GPT’s capabilities by integrating real data from your
         applications and devices.
       </Text>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('JoinSlack')}>
         <View style={styles.communityContainer}>
           <LinearGradient
             colors={['#134E48', '#0E9384']}

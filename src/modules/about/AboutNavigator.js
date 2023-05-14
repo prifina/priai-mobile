@@ -6,9 +6,9 @@ import AboutPrifina from './screens/AboutPrifina';
 import DataHandle from './screens/DataHandle';
 import PrivacyRoadmap from './screens/PrivacyRoadmap';
 import Terms from './screens/Terms';
-import {Text, TouchableOpacity} from 'react-native';
 
 import BackButton from '../../components/BackButton';
+import JoinSlack from './screens/JoinSlack';
 
 const AboutStack = createNativeStackNavigator();
 
@@ -31,6 +31,7 @@ const AboutNavigator = ({navigation}) => {
       <AboutStack.Screen name="DataHandle" component={DataHandle} />
       <AboutStack.Screen name="PrivacyRoadmap" component={PrivacyRoadmap} />
       <AboutStack.Screen name="Terms" component={Terms} />
+      <AboutStack.Screen name="JoinSlack" component={JoinSlack} />
     </AboutStack.Navigator>
   );
 };

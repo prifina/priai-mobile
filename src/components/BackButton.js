@@ -8,7 +8,9 @@ const BackButton = ({navigation}) => {
     navigation.goBack();
   };
   return (
-    <TouchableOpacity onPress={handleGoBack}>
+    <TouchableOpacity
+      onPress={handleGoBack}
+      hitSlop={{top: 30, bottom: 30, left: 10, right: 30}}>
       <ChevronLeftIcon />
     </TouchableOpacity>
   );

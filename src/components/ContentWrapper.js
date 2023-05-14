@@ -6,7 +6,7 @@ const ContentWrapper = ({title, children}) => {
     <>
       <ScrollView
         style={{
-          // height: '100%',
+          height: '100%',
           backgroundColor: 'white',
           padding: 16,
           borderTopWidth: 1,
