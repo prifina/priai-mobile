@@ -28,6 +28,7 @@ const AppNavigator = () => {
 
   return (
     <Tab.Navigator
+      initialRouteName="Thread"
       screenOptions={({navigation}) => ({
         headerTitle: () => {},
         headerLeft: props => <AppHeader {...props} navigation={navigation} />,

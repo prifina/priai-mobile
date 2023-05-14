@@ -148,7 +148,6 @@ import {useHeaderHeight} from '@react-navigation/elements';
 import {Configuration, OpenAIApi} from 'openai';
 
 import AppleHealthKit from 'react-native-health';
-import ContentWrapper from '../components/ContentWrapper';
 
 import AppContext from '../hoc/AppContext';
 import DotLoader from '../components/DotLoader';

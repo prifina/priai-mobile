@@ -10,12 +10,17 @@ import {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+
 import AppNavigator from './AppNavigator';
 import AuthNavigator from './AuthNavigator';
 
 import AppContext from '../hoc/AppContext';
 
 import useHealthKitHooks from '../utils/healthKitUtils';
+import AnimatedLaunchScreen from '../modules/onboarding/AnimatedLaunchScreen';
+
+const RootStack = createNativeStackNavigator();
 
 const MainNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -103,20 +108,33 @@ const MainNavigator = () => {
 
   return (
     <NavigationContainer>
-      <SafeAreaView style={styles.safeArea}>
-        {isAuthenticated ? (
-          <AppContext.Provider value={contextValues}>
-            <AppNavigator />
-          </AppContext.Provider>
-        ) : (
-          <AuthNavigator />
-        )}
-        {isLoading ? (
-          <View style={styles.activityIndicator}>
-            <ActivityIndicator size="large" />
-          </View>
-        ) : null}
-      </SafeAreaView>
+      <RootStack.Navigator
+        initialRouteName="AnimatedLaunchScreen"
+        screenOptions={{headerShown: false}}>
+        <RootStack.Screen
+          name="AnimatedLaunchScreen"
+          component={AnimatedLaunchScreen}
+        />
+        <RootStack.Screen
+          name="MainApp"
+          children={() => (
+            <View style={styles.safeArea}>
+              {isAuthenticated ? (
+                <AppContext.Provider value={contextValues}>
+                  <AppNavigator />
+                </AppContext.Provider>
+              ) : (
+                <AuthNavigator />
+              )}
+              {isLoading ? (
+                <View style={styles.activityIndicator}>
+                  <ActivityIndicator size="large" />
+                </View>
+              ) : null}
+            </View>
+          )}
+        />
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 };

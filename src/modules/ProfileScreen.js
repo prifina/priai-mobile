@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useLayoutEffect,
-  useContext,
-} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -17,11 +11,6 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import {useHeaderHeight} from '@react-navigation/elements';
-
-import AppleHealthKit, {
-  HealthValue,
-  HealthKitPermissions,
-} from 'react-native-health';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -93,7 +82,7 @@ const ProfileScreen = ({navigation}) => {
   }, [navigation, isVisible]);
 
   const openAppPrivacySettings = () => {
-    const packageName = 'com.yourpackagename'; // Replace with your app's package name
+    const packageName = 'org.reactjs.native.example.priai';
     const scheme =
       Platform.OS === 'ios' ? 'app-settings://' : `package:${packageName}`;
     const url = `${scheme}privacy`;

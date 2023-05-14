@@ -11,7 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ContentWrapper from '../../components/ContentWrapper';
+
 import {Swipeable} from 'react-native-gesture-handler';
 
 import ThreadItemIcon from '../../assets/thread-item-icon.svg';
@@ -302,15 +302,6 @@ const styles = StyleSheet.create({
     borderColor: '#D0D5DD',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   searchInput: {
     height: 24,
