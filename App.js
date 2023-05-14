@@ -25,6 +25,7 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 import MainNavigator from './src/navigation/MainNavigator';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 function App() {
   // Amplify.configure(awsConfig);
@@ -37,7 +38,9 @@ function App() {
 
   return (
     <>
-      <MainNavigator />
+      <GestureHandlerRootView style={{flex: 1}}>
+        <MainNavigator />
+      </GestureHandlerRootView>
     </>
   );
 }

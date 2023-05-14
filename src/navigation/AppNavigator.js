@@ -10,6 +10,7 @@ import SubscriptionsScreen from '../modules/SubscriptionsScreen';
 import AppHeader from '../components/AppHeader';
 
 import AboutNavigator from '../modules/about/AboutNavigator';
+import ThreadNavigator from '../modules/threads/ThreadNavigator';
 
 import ChatLogo from '../assets/message-chat-circle.svg';
 import StarLogo from '../assets/star.svg';
@@ -50,8 +51,8 @@ const AppNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Chat"
-        component={demo ? ChatScreenDemo : ChatScreen}
+        name="Thread"
+        component={demo ? ChatScreenDemo : ThreadNavigator}
         options={{
           tabBarIcon: ({focused}) => (
             <TouchableOpacity>

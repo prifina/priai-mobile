@@ -60,7 +60,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-const ChatScreen = ({navigation}) => {
+const ChatScreen = ({navigation, route}) => {
   const {defaultValues, checkHKStatus} = useContext(AppContext);
 
   const {createTable, insertData, retrieveData, calculateAverage} =
@@ -85,6 +85,40 @@ const ChatScreen = ({navigation}) => {
   const timeStamp = Date.now();
 
   const formattedDate = formatDateToHoursAndMinutes(timeStamp);
+
+  const getThreads = async () => {
+    const {thread} = route.params;
+    const existingThreads = await AsyncStorage.getItem('threads');
+
+    console.log('existing thread', existingThreads);
+    let threads = [];
+    if (existingThreads) threads = JSON.parse(existingThreads);
+    const currentThread = threads.find(t => t.id === thread.id);
+    if (currentThread) setConversation(currentThread.messages);
+  };
+
+  const saveThreads = async () => {
+    const {thread} = route.params;
+    const existingThreads = await AsyncStorage.getItem('threads');
+    let threads = [];
+    if (existingThreads) threads = JSON.parse(existingThreads);
+    const updatedThreads = threads.map(t =>
+      t.id === thread.id
+        ? {...t, messages: conversation, timeLastEdited: timeStamp}
+        : t,
+    );
+    await AsyncStorage.setItem('threads', JSON.stringify(updatedThreads));
+  };
+
+  useEffect(() => {
+    getThreads();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      saveThreads();
+    };
+  }, [conversation]);
 
   const handleClearChat = () => {
     setConversation([]);

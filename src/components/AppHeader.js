@@ -17,7 +17,7 @@ const AppHeader = ({navigation, ...props}) => {
           backgroundColor: '#fff',
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 10,
+          paddingHorizontal: 16,
         }}>
         <PriAILogo />
         <Text
