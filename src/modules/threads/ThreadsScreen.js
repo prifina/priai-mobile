@@ -10,9 +10,14 @@ import {
   SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ThreadItemIcon from '../../assets/thread-item-icon.svg';
 import ContentWrapper from '../../components/ContentWrapper';
 import {Swipeable} from 'react-native-gesture-handler';
+
+import ThreadItemIcon from '../../assets/thread-item-icon.svg';
+import PencilLineIcon from '../../assets/pencil-line.svg';
+
+import ClockRewindIcon from '../../assets/clock-rewind.svg';
+import PriAIAvatar from '../../assets/pri-ai-avatar.svg';
 
 const ThreadsScreen = ({navigation}) => {
   const [threads, setThreads] = useState([]);
@@ -41,6 +46,8 @@ const ThreadsScreen = ({navigation}) => {
       console.log(error);
     }
   };
+
+  const [swiping, setSwiping] = useState(false);
 
   const handleThreadSelect = thread => {
     navigation.navigate('Chat', {thread});
@@ -90,11 +97,19 @@ const ThreadsScreen = ({navigation}) => {
       });
     };
 
+    const handleThreadPress = () => {
+      if (!swiping) {
+        handleThreadSelect(item);
+      }
+    };
+
     return (
       <Swipeable
         renderRightActions={renderRightActions}
-        renderLeftActions={renderLeftActions}>
-        <TouchableOpacity onPress={() => handleThreadSelect(item)}>
+        renderLeftActions={renderLeftActions}
+        onSwipeableWillOpen={() => setSwiping(true)}
+        onSwipeableWillClose={() => setSwiping(false)}>
+        <TouchableOpacity onPress={handleThreadPress}>
           <View style={styles.threadItem}>
             <View
               style={{flexDirection: 'row', padding: 8, alignItems: 'center'}}>
@@ -103,6 +118,13 @@ const ThreadsScreen = ({navigation}) => {
                 <Text style={styles.threadName}>{item.name}</Text>
                 <Text>{formattedDate}</Text>
               </View>
+            </View>
+            <View
+              style={{
+                paddingRight: 8,
+                paddingVertical: 12,
+              }}>
+              <PriAIAvatar />
             </View>
           </View>
         </TouchableOpacity>
@@ -120,8 +142,6 @@ const ThreadsScreen = ({navigation}) => {
     }
     return '';
   };
-
-  const [name, setName] = useState('');
 
   const handleThreadCreate = () => {
     Alert.prompt('Thread Name', null, text => {
@@ -153,6 +173,19 @@ const ThreadsScreen = ({navigation}) => {
   return (
     // <ContentWrapper>
     <View style={styles.wrapper}>
+      <View
+        style={{flexDirection: 'row', alignItems: 'center', marginBottom: 13}}>
+        <Text
+          style={{
+            marginRight: 6,
+            fontSize: 14,
+            fontWeight: 600,
+            lineHeight: 20,
+          }}>
+          Recents
+        </Text>
+        <ClockRewindIcon />
+      </View>
       <View style={styles.threadsContainer}>
         <FlatList
           data={threads}
@@ -161,7 +194,12 @@ const ThreadsScreen = ({navigation}) => {
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
         />
       </View>
-      <Button title="New Thread" onPress={handleThreadCreate} />
+      <TouchableOpacity
+        style={styles.buttonContainer}
+        onPress={handleThreadCreate}>
+        <PencilLineIcon />
+        <Text style={styles.buttonText}>New Thread</Text>
+      </TouchableOpacity>
     </View>
     // </ContentWrapper>
   );
@@ -186,6 +224,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
+    justifyContent: 'space-between',
   },
   itemSeparator: {
     borderBottomWidth: 1,
@@ -216,6 +255,23 @@ const styles = StyleSheet.create({
   },
   rightActionText: {
     color: '#FFFFFF',
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 16,
+    right: 20,
+    backgroundColor: '#0E9384',
+    borderRadius: 100,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 600,
+    fontSize: 14,
+    marginLeft: 10,
   },
 });
 
