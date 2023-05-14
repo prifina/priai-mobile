@@ -8,6 +8,8 @@ import PrivacyRoadmap from './screens/PrivacyRoadmap';
 import Terms from './screens/Terms';
 import {Text, TouchableOpacity} from 'react-native';
 
+import BackButton from '../../components/BackButton';
+
 const AboutStack = createNativeStackNavigator();
 
 const AboutNavigator = ({navigation}) => {
@@ -16,14 +18,15 @@ const AboutNavigator = ({navigation}) => {
       presentation="fullScreenModal"
       screenOptions={{
         presentation: 'modal',
-        headerLeft: () => (
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text>Back</Text>
-          </TouchableOpacity>
-        ),
-        header: () => {},
+        headerLeft: () => <BackButton navigation={navigation} />,
       }}>
-      <AboutStack.Screen name="AboutScreen" component={AboutScreen} />
+      <AboutStack.Screen
+        name="AboutScreen"
+        component={AboutScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
       <AboutStack.Screen name="AboutPrifina" component={AboutPrifina} />
       <AboutStack.Screen name="DataHandle" component={DataHandle} />
       <AboutStack.Screen name="PrivacyRoadmap" component={PrivacyRoadmap} />
