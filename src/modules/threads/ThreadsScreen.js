@@ -5,6 +5,7 @@ import {
   Button,
   FlatList,
   Alert,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -19,8 +20,11 @@ import PencilLineIcon from '../../assets/pencil-line.svg';
 import ClockRewindIcon from '../../assets/clock-rewind.svg';
 import PriAIAvatar from '../../assets/pri-ai-avatar.svg';
 
+import SearchIcon from '../../assets/search-icon.svg';
+
 const ThreadsScreen = ({navigation}) => {
   const [threads, setThreads] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     getThreads();
@@ -114,7 +118,10 @@ const ThreadsScreen = ({navigation}) => {
             <View
               style={{flexDirection: 'row', padding: 8, alignItems: 'center'}}>
               <ThreadItemIcon />
-              <View style={{marginLeft: 12}}>
+              <View
+                style={{
+                  marginLeft: 12,
+                }}>
                 <Text style={styles.threadName}>{item.name}</Text>
                 <Text>{formattedDate}</Text>
               </View>
@@ -170,11 +177,25 @@ const ThreadsScreen = ({navigation}) => {
     setThreads(threads);
   };
 
+  // Filter threads based on search text
+  const filteredThreads = threads.filter(thread =>
+    thread.name.toLowerCase().includes(searchText.toLowerCase()),
+  );
+
   return (
-    // <ContentWrapper>
     <View style={styles.wrapper}>
+      <View style={styles.searchContainer}>
+        <SearchIcon />
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor="#667085"
+          placeholder="Search Threads"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+      </View>
       <View
-        style={{flexDirection: 'row', alignItems: 'center', marginBottom: 13}}>
+        style={{flexDirection: 'row', alignItems: 'center', marginBottom: 10}}>
         <Text
           style={{
             marginRight: 6,
@@ -188,7 +209,7 @@ const ThreadsScreen = ({navigation}) => {
       </View>
       <View style={styles.threadsContainer}>
         <FlatList
-          data={threads}
+          data={filteredThreads}
           renderItem={renderThread}
           keyExtractor={item => item.id.toString()}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
@@ -201,7 +222,6 @@ const ThreadsScreen = ({navigation}) => {
         <Text style={styles.buttonText}>New Thread</Text>
       </TouchableOpacity>
     </View>
-    // </ContentWrapper>
   );
 };
 
@@ -272,6 +292,30 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     fontSize: 14,
     marginLeft: 10,
+  },
+  searchContainer: {
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: '#D0D5DD',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  searchInput: {
+    height: 24,
+    width: '100%',
+    paddingHorizontal: 10.5,
   },
 });
 
