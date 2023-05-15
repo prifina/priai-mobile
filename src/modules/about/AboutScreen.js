@@ -1,5 +1,15 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {View, Text, Button, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
+  Linking,
+  StyleSheet,
+} from 'react-native';
+
+import {WebView} from 'react-native-webview';
+
 import ContentWrapper from '../../components/ContentWrapper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -11,7 +21,51 @@ import PrifinaButtonIcon from '../../assets/button-icons/prifina-button-icon.svg
 import PrivacyButtonIcon from '../../assets/button-icons/privacy-button-icon.svg';
 import TermsButtonIcon from '../../assets/button-icons/terms-button-icon.svg';
 
+import ChevronLeftIcon from '../../assets/chevron-left.svg';
+
+import BackButton from '../../components/BackButton';
+
 const AboutScreen = ({navigation}) => {
+  const [showWebView, setShowWebView] = useState(false);
+
+  const openPrifinaWebsite = () => {
+    setShowWebView(true);
+  };
+
+  const closeWebView = () => {
+    setShowWebView(false);
+  };
+
+  const BackButton = ({onPress}) => {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        hitSlop={{top: 30, bottom: 30, left: 10, right: 30}}>
+        <ChevronLeftIcon />
+      </TouchableOpacity>
+    );
+  };
+
+  if (showWebView) {
+    return (
+      <View style={{flex: 1}}>
+        <View
+          style={{
+            height: 42,
+            paddingHorizontal: 24,
+            paddingVertical: 11,
+            alignItems: 'center',
+            backgroundColor: 'white',
+            flexDirection: 'row',
+          }}>
+          <BackButton onPress={closeWebView} />
+          {/* <Text style={{marginLeft: 12}}>Back</Text> */}
+        </View>
+        <WebView source={{uri: 'https://www.prifina.com'}} />
+      </View>
+    );
+  }
+
   return (
     <ContentWrapper title="About this app">
       <View style={styles.badgeContainer}>
@@ -55,7 +109,8 @@ const AboutScreen = ({navigation}) => {
       <View>
         <TouchableOpacity
           style={styles.customButton}
-          onPress={() => navigation.navigate('AboutPrifina')}>
+          // onPress={() => navigation.navigate('AboutPrifina')}
+          onPress={openPrifinaWebsite}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <PrifinaButtonIcon />
             <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>

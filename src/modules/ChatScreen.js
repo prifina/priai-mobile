@@ -732,7 +732,7 @@ const ChatScreen = ({navigation, route}) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior="padding"
-      keyboardVerticalOffset={deviceHeight + 55}>
+      keyboardVerticalOffset={deviceHeight + 89}>
       {/* add error state */}
       {toastConfig && (
         <Toast visible={true} {...toastConfig} onDismiss={hideToast} />

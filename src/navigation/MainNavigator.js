@@ -33,7 +33,7 @@ const MainNavigator = () => {
     try {
       const initSuccess = await initHealthKit();
       if (initSuccess) {
-        const stepsSuccess = await getData('Calories');
+        const stepsSuccess = await getSteps('Steps');
         // const caloriesSuccess = await getData('Calories');
         if (stepsSuccess) {
           setIsLoading(false);

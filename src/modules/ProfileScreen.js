@@ -25,7 +25,8 @@ import useToast from '../utils/useToast';
 import Toast from '../components/Toast';
 
 const ProfileScreen = ({navigation}) => {
-  const {defaultValues, setDefaultValues, demo} = useContext(AppContext);
+  const {defaultValues, setDefaultValues, checkHKStatus, demo} =
+    useContext(AppContext);
 
   const [newValues, setNewValues] = useState({
     name: defaultValues.name,
@@ -47,7 +48,7 @@ const ProfileScreen = ({navigation}) => {
     setIsVisible(!isDefaultEqualToNew);
   }, [newValues]);
 
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(true);
 
   const handleSave = async () => {
     try {
@@ -95,7 +96,7 @@ const ProfileScreen = ({navigation}) => {
   return (
     <KeyboardAvoidingView
       behavior="padding"
-      keyboardVerticalOffset={deviceHeight + 65}>
+      keyboardVerticalOffset={deviceHeight + 50}>
       {toastConfig && (
         <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
       )}
@@ -130,16 +131,30 @@ const ProfileScreen = ({navigation}) => {
               )}
             </View>
           </View>
-          <TouchableOpacity onPress={openAppPrivacySettings}>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: '#107569',
-              }}>
-              Manage
-            </Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <TouchableOpacity onPress={checkHKStatus}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#107569',
+                }}>
+                Sync
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={openAppPrivacySettings}
+              style={{marginLeft: 12}}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#107569',
+                }}>
+                Manage
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.newSourcesContainer}>
           <Text
