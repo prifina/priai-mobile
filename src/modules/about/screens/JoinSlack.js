@@ -33,7 +33,7 @@ const JoinSlack = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <View style={{flex: 1}}>
       <ScrollView style={styles.container}>
         <View style={styles.imageContainer}>
           <Image source={slackBanner} style={styles.image} />
@@ -79,31 +79,34 @@ const JoinSlack = ({navigation}) => {
                 Be among the first to know about new features and updates
               </Text>
             </View>
-            <TouchableOpacity
-              title="Join Slack"
-              onPress={openSlack}
-              style={styles.button}>
-              <Text
-                style={{
-                  color: 'white',
-                  lineHeight: 24,
-                  fontSize: 16,
-                  fontWeight: '600',
-                  marginRight: 10.5,
-                }}>
-                Join the revolution
-              </Text>
-              <LinkExternalIcon />
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      <TouchableOpacity
+        title="Join Slack"
+        onPress={openSlack}
+        style={styles.button}>
+        <Text
+          style={{
+            color: 'white',
+            lineHeight: 24,
+            fontSize: 16,
+            fontWeight: '600',
+            marginRight: 10.5,
+          }}>
+          Join the revolution
+        </Text>
+        <LinkExternalIcon />
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    // padding: 10,
+    position: 'relative',
+  },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   textContainer: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 24,
   },
   title: {
     color: '#134E48',
@@ -141,9 +144,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
+    position: 'sticky',
+    bottom: 16,
+    marginHorizontal: 12,
     height: 48,
     backgroundColor: '#0E9384',
-
     borderRadius: 8,
     padding: 10,
     marginTop: 16,

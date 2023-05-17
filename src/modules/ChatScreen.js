@@ -659,10 +659,11 @@ const ChatScreen = ({navigation, route}) => {
 
     try {
       const result = await openai.createCompletion({
+        // model: 'gpt-3.5-turbo',
         model: 'text-davinci-003',
         prompt: prompt,
         temperature: 0,
-        max_tokens: 50,
+        max_tokens: 200,
       });
       const response = result.data.choices[0].text;
       setApiResponse(response);
@@ -763,7 +764,6 @@ const ChatScreen = ({navigation, route}) => {
 
       <View style={styles.inputWrapper}>
         <View style={styles.inputContainer}>
-          <Button title="check" onPress={checkHKStatus} />
           <TextInput
             style={styles.input}
             value={prompt}

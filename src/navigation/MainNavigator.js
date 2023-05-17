@@ -97,12 +97,13 @@ const MainNavigator = () => {
     fetchData();
   }, []);
 
-  const demo = false;
+  const [demo, setDemo] = useState(false);
 
   const contextValues = {
     defaultValues,
     setDefaultValues,
     demo,
+    setDemo,
     checkHKStatus,
   };
 

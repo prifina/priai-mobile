@@ -17,13 +17,13 @@ const AnimatedLaunchScreen = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 3000,
         easing: Easing.ease,
         useNativeDriver: true,
       }),
       Animated.timing(positionAnim, {
         toValue: 0,
-        duration: 1000,
+        duration: 2000,
         easing: Easing.ease,
         useNativeDriver: true,
       }),

@@ -70,10 +70,10 @@ const AboutScreen = ({navigation}) => {
     <ContentWrapper title="About this app">
       <View style={styles.badgeContainer}>
         <View style={styles.badge}>
-          <Text>Version 0.0.2</Text>
+          <Text>Version 1.0.0</Text>
         </View>
         <View style={styles.badge}>
-          <Text>Released 11/5/2023</Text>
+          <Text>Released 17/5/2023</Text>
         </View>
       </View>
       <Text style={{fontSize: 16, marginBottom: 24}}>
@@ -119,7 +119,7 @@ const AboutScreen = ({navigation}) => {
           </View>
           <Icon name="chevron-right" size={12} color="gray" />
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.customButton}
           onPress={() => navigation.navigate('DataHandle')}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -129,14 +129,14 @@ const AboutScreen = ({navigation}) => {
             </Text>
           </View>
           <Icon name="chevron-right" size={12} color="gray" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.customButton}
           onPress={() => navigation.navigate('PrivacyRoadmap')}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <PrivacyButtonIcon />
             <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
-              Privacy roadmap
+              Privacy policy
             </Text>
           </View>
           <Icon name="chevron-right" size={12} color="gray" />

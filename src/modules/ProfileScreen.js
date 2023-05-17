@@ -8,11 +8,14 @@ import {
   Platform,
   Linking,
   TextInput,
+  Switch,
   KeyboardAvoidingView,
 } from 'react-native';
 import {useHeaderHeight} from '@react-navigation/elements';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import AppleHealthKit from 'react-native-health';
 
 import ContentWrapper from '../components/ContentWrapper';
 
@@ -25,7 +28,7 @@ import useToast from '../utils/useToast';
 import Toast from '../components/Toast';
 
 const ProfileScreen = ({navigation}) => {
-  const {defaultValues, setDefaultValues, checkHKStatus, demo} =
+  const {defaultValues, setDefaultValues, checkHKStatus, demo, setDemo} =
     useContext(AppContext);
 
   const [newValues, setNewValues] = useState({
@@ -93,6 +96,42 @@ const ProfileScreen = ({navigation}) => {
 
   const deviceHeight = useHeaderHeight();
 
+  const openHealthKitPermissionsScreen = async () => {
+    try {
+      const authStatus = await AppleHealthKit.getAuthStatus({
+        permissions: {
+          read: ['Height', 'Weight', 'StepCount'], // Add the necessary read permissions here
+          write: ['Height', 'Weight'], // Add the necessary write permissions here
+        },
+      });
+
+      if (authStatus === 'unknown' || authStatus === 'denied') {
+        // Open the HealthKit permissions screen
+        await AppleHealthKit.requestPermissions({
+          permissions: {
+            read: ['Height', 'Weight', 'StepCount'], // Add the necessary read permissions here
+            write: ['Height', 'Weight'], // Add the necessary write permissions here
+          },
+        });
+      } else if (authStatus === 'restricted') {
+        // Handle restricted access
+        console.log('HealthKit access is restricted.');
+      } else if (authStatus === 'authorized') {
+        // HealthKit is already authorized
+        console.log('HealthKit access is already authorized.');
+      }
+    } catch (error) {
+      // Handle error
+      console.log('Error:', error);
+    }
+  };
+
+  const handleSwitchDemoMode = () => {
+    setDemo(!demo);
+  };
+
+  console.log('DEMO', demo);
+
   return (
     <KeyboardAvoidingView
       behavior="padding"
@@ -101,6 +140,18 @@ const ProfileScreen = ({navigation}) => {
         <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
       )}
       <ContentWrapper title="Profile and settings">
+        <View style={styles.demoContainer}>
+          <Text
+            style={{
+              fontSize: 18,
+              marginBottom: 12,
+              color: '#134E48',
+              fontWeight: 600,
+            }}>
+            Demo mode
+          </Text>
+          <Switch value={demo} onValueChange={handleSwitchDemoMode} />
+        </View>
         <Text
           style={{
             fontSize: 18,
@@ -143,7 +194,7 @@ const ProfileScreen = ({navigation}) => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={openAppPrivacySettings}
+              onPress={openHealthKitPermissionsScreen}
               style={{marginLeft: 12}}>
               <Text
                 style={{
@@ -291,6 +342,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#5FE9D0',
     borderRadius: 8,
+  },
+  demoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  text: {
+    fontSize: 16,
   },
 });
 
