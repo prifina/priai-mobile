@@ -1,3 +1,5 @@
+import 'react-native-get-random-values';
+
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {
@@ -20,11 +22,23 @@ import AppContext from '../hoc/AppContext';
 import useHealthKitHooks from '../utils/healthKitUtils';
 import AnimatedLaunchScreen from '../modules/onboarding/AnimatedLaunchScreen';
 
+import {GET_SHARE_COUNT, GET_SHARE_MESSAGE} from '../utils/queries';
+
+import {v4 as uuidv4} from 'uuid';
+
+import config from '../../config';
+
+import axios from 'axios';
+
 const RootStack = createNativeStackNavigator();
 
 const MainNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [demo, setDemo] = useState(false);
+  const [shareCount, setShareCount] = useState(100);
+  const [shareMessage, setShareMessage] = useState('Default share message');
+  const [userId, setUserId] = useState(null);
 
   const {initHealthKit, getData, getSteps} = useHealthKitHooks();
 
@@ -69,35 +83,91 @@ const MainNavigator = () => {
     email: 'mail@example.com',
   });
 
+  const fetchProfileData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('profileData');
+      if (savedData) {
+        setDefaultValues(JSON.parse(savedData));
+        setIsLoading(false);
+
+        console.log('Data retrieved from AsyncStorage');
+      }
+    } catch (error) {
+      console.log('Error retrieving data from AsyncStorage:', error);
+
+      setDefaultValues(defaultValues);
+      Alert.alert(
+        'Error',
+        'Failed to retrieve profile data. Please set again.',
+        [{text: 'OK', onPress: () => console.log('OK pressed')}],
+      );
+    }
+    setIsLoading(false);
+  };
+
+  ////userID and message count
+
+  const fetchUserId = async () => {
+    try {
+      let id = await AsyncStorage.getItem('userId');
+      if (id === null) {
+        id = uuidv4();
+        await AsyncStorage.setItem('userId', id);
+      }
+      setUserId(id);
+    } catch (error) {
+      console.error('Failed to load userId', error);
+    }
+  };
+
+  const fetchShareMessage = async () => {
+    try {
+      const response = await axios.post(config.GRAPHCMS_API_KEY, {
+        query: GET_SHARE_MESSAGE,
+        // variables: {userId: "12345"},
+      });
+
+      const {data} = response.data;
+      console.log('data', data);
+      if (data.share) {
+        setShareMessage(data.share.shareMessage);
+      }
+    } catch (error) {
+      console.log('Error =>', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchShareCount = async () => {
+      if (userId === null) return;
+
+      try {
+        const response = await axios.post(config.GRAPHCMS_API_KEY, {
+          query: GET_SHARE_COUNT,
+          variables: {userId},
+        });
+        const {data} = response.data;
+        if (data.share) {
+          setShareCount(data.share.shareCount);
+        }
+      } catch (error) {
+        console.error('Failed to load share count', error);
+      }
+    };
+    fetchShareCount();
+  }, [userId]);
+
+  console.log('MAIN, userID, shareCount', userId, shareCount);
+
+  //////////
+
   useEffect(() => {
     setIsLoading(true);
 
-    const fetchData = async () => {
-      try {
-        const savedData = await AsyncStorage.getItem('profileData');
-        if (savedData) {
-          setDefaultValues(JSON.parse(savedData));
-          setIsLoading(false);
-
-          console.log('Data retrieved from AsyncStorage');
-        }
-      } catch (error) {
-        console.log('Error retrieving data from AsyncStorage:', error);
-
-        setDefaultValues(defaultValues);
-        Alert.alert(
-          'Error',
-          'Failed to retrieve profile data. Please set again.',
-          [{text: 'OK', onPress: () => console.log('OK pressed')}],
-        );
-      }
-      setIsLoading(false);
-    };
-
-    fetchData();
+    fetchProfileData();
+    fetchUserId();
+    fetchShareMessage();
   }, []);
-
-  const [demo, setDemo] = useState(false);
 
   const contextValues = {
     defaultValues,
@@ -105,6 +175,10 @@ const MainNavigator = () => {
     demo,
     setDemo,
     checkHKStatus,
+    shareMessage,
+    shareCount,
+    setShareCount,
+    userId,
   };
 
   return (

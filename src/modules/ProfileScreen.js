@@ -144,14 +144,18 @@ const ProfileScreen = ({navigation}) => {
           <Text
             style={{
               fontSize: 18,
-              marginBottom: 12,
               color: '#134E48',
               fontWeight: 600,
             }}>
             Demo mode
           </Text>
+
           <Switch value={demo} onValueChange={handleSwitchDemoMode} />
         </View>
+        <Text style={{fontSize: 16, marginBottom: 12}}>
+          Experience the full capabilities of Pri-AI, using artificial
+          connections and data.
+        </Text>
         <Text
           style={{
             fontSize: 18,

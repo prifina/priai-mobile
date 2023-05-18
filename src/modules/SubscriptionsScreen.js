@@ -1,33 +1,84 @@
-import React from 'react';
-import {View, Text, Button, Share} from 'react-native';
-import ContentWrapper from '../components/ContentWrapper';
+import React, {useState, useEffect, useContext} from 'react';
+import {View, Text, Button} from 'react-native';
+import axios from 'axios';
+import Share from 'react-native-share';
+
+import {
+  UPDATE_AND_PUBLISH_SHARE_COUNT,
+  CREATE_AND_PUBLISH_NEW_SHARE,
+  GET_SHARE_COUNT,
+} from '../utils/queries';
+
+import AppContext from '../hoc/AppContext';
+
+import config from '../../config';
 
 const SubscriptionsScreen = () => {
-  const onShare = async () => {
-    try {
-      const result = await Share.share({
-        message:
-          'Join our TestFlight beta and help us make the app better! Click the link to sign up: https://testflight.apple.com/join/YourTestFlightLink',
-      });
+  const {userId, shareCount, setShareCount, shareMessage} =
+    useContext(AppContext);
 
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
+  console.log('userId', userId);
+
+  console.log('share count', shareCount);
+  console.log('share message', shareMessage);
+
+  const onShare = async () => {
+    const shareOptions = {
+      message: shareMessage,
+    };
+
+    try {
+      const ShareResponse = await Share.open(shareOptions);
+
+      if (ShareResponse.action === Share.sharedAction) {
+        const newShareCount = shareCount + 100;
+
+        // get current share count
+        const currentShare = await axios.post(config.GRAPHCMS_API_KEY, {
+          query: GET_SHARE_COUNT,
+          variables: {userId: userId},
+        });
+
+        if (currentShare.data.data.share) {
+          // if a share with that userId exists, update it
+          try {
+            await axios.post(config.GRAPHCMS_API_KEY, {
+              query: UPDATE_AND_PUBLISH_SHARE_COUNT,
+              variables: {userId: userId, shareCount: newShareCount},
+            });
+
+            setShareCount(newShareCount);
+          } catch (error) {
+            console.log('Error => 1', error);
+          }
         } else {
-          // shared
+          // if a share with that userId doesn't exist, create a new one
+          try {
+            await axios.post(config.GRAPHCMS_API_KEY, {
+              query: CREATE_AND_PUBLISH_NEW_SHARE,
+              variables: {userId: userId, shareCount: newShareCount},
+            });
+
+            setShareCount(newShareCount);
+          } catch (error) {
+            console.log('Error => 2', error.response);
+          }
         }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
       }
     } catch (error) {
-      alert(error.message);
+      console.log('Error => 3', error);
     }
   };
 
   return (
-    <ContentWrapper title="Upgrade">
-      <Button onPress={onShare} disabled title="Invite a Friend" />
-    </ContentWrapper>
+    <>
+      <Button
+        title="Share"
+        onPress={onShare}
+        disabled={shareMessage == '' ? true : false}
+      />
+      <Text>{shareCount}</Text>
+    </>
   );
 };
 
