@@ -70,7 +70,7 @@ const AboutScreen = ({navigation}) => {
     <ContentWrapper title="About this app">
       <View style={styles.badgeContainer}>
         <View style={styles.badge}>
-          <Text>Version 1.0.0</Text>
+          <Text>Beta Version 1.0.0</Text>
         </View>
         <View style={styles.badge}>
           <Text>Released 17/5/2023</Text>
