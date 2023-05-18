@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   toast: {
     zIndex: 1,
     position: 'absolute',
-    top: 30,
+    top: 38,
     left: 20,
     right: 20,
     padding: 10,

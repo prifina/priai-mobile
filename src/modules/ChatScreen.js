@@ -32,6 +32,7 @@ import Voice from '@react-native-voice/voice';
 
 import SendIcon from '../assets/send-icon.svg';
 import MicrophoneIcon from '../assets/microphone.svg';
+import UpgradeIcon from '../assets/upgrade-button-icon.svg';
 import ChatItem from './chat/ChatItem';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -61,7 +62,13 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const ChatScreen = ({navigation, route}) => {
-  const {defaultValues, checkHKStatus} = useContext(AppContext);
+  const {
+    defaultValues,
+    checkHKStatus,
+    numberOfPrompts,
+    setNumberOfPrompts,
+    shareCount,
+  } = useContext(AppContext);
 
   const {createTable, insertData, retrieveData, calculateAverage} =
     useDatabaseHooks();
@@ -79,6 +86,8 @@ const ChatScreen = ({navigation, route}) => {
   const [speechError, setSpeechError] = useState('');
 
   const [firstLaunch, setFirstLaunch] = useState(null);
+
+  const [quota, setQuota] = useState(false);
 
   const deviceHeight = useHeaderHeight();
 
@@ -653,6 +662,7 @@ const ChatScreen = ({navigation, route}) => {
       setIsLoading(false);
       setIsListening(false);
       setPrompt('');
+
       return;
     }
     /////
@@ -679,6 +689,22 @@ const ChatScreen = ({navigation, route}) => {
       setIsLoading(false);
     }
     setPrompt('');
+
+    ///number of prompts asked
+    try {
+      const newNumberOfPrompts = numberOfPrompts + 1;
+      setNumberOfPrompts(newNumberOfPrompts);
+      await AsyncStorage.setItem(
+        'numberOfPrompts',
+        newNumberOfPrompts.toString(),
+      );
+
+      if (numberOfPrompts === shareCount) {
+        setQuota(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   ////=========////=========////=========////=========////=========////=========////=========////=========////========= siri
@@ -727,6 +753,7 @@ const ChatScreen = ({navigation, route}) => {
   }, [conversation]);
 
   console.log('conversation', conversation);
+  console.log('prompts / count', numberOfPrompts, shareCount);
 
   return (
     // <View style={styles.container}>
@@ -738,7 +765,24 @@ const ChatScreen = ({navigation, route}) => {
       {toastConfig && (
         <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
       )}
-
+      <View style={styles.quotaContainer}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={styles.quotaText}>
+            {numberOfPrompts}/{shareCount}
+          </Text>
+          <Text style={[styles.quotaText, {marginLeft: 5}]}>
+            {!quota ? 'Questions used' : 'Quota full'}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.quotaButton}
+          onPress={() => navigation.navigate('Subscriptions')}>
+          <UpgradeIcon />
+          <Text style={{fontSize: 14, marginLeft: 4, color: '#3538CD'}}>
+            Upgrade
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         keyboardDismissMode="interactive"
         style={styles.conversationContainer}
@@ -761,35 +805,38 @@ const ChatScreen = ({navigation, route}) => {
       {/* {isListening ? <DotLoader isLoading={isListening} /> : null} */}
       {/* <Button title="Get steps" onPress={handleSteps} />
       <Button title="create table" onPress={createTable} /> */}
-
-      <View style={styles.inputWrapper}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={prompt}
-            onChangeText={setPrompt}
-            placeholder="How many steps did I take today?"
-            placeholderTextColor="#aaa"
-            returnKeyType="done"
-          />
-          <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={handleSubmit}>
-              {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{marginLeft: 5, marginRight: 5}}
-              // onPressIn={startListening}
-              // onPressOut={stopListening}
-              onPress={isListening ? stopListening : startListening}>
-              {isListening ? (
-                <DotLoader isLoading={isListening} />
-              ) : (
-                <MicrophoneIcon />
-              )}
-            </TouchableOpacity>
+      {!quota ? (
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={prompt}
+              onChangeText={setPrompt}
+              placeholder="How many steps did I take today?"
+              placeholderTextColor="#aaa"
+              returnKeyType="done"
+            />
+            <View style={styles.iconsContainer}>
+              <TouchableOpacity onPress={handleSubmit}>
+                {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{marginLeft: 5, marginRight: 5}}
+                // onPressIn={startListening}
+                // onPressOut={stopListening}
+                onPress={isListening ? stopListening : startListening}>
+                {isListening ? (
+                  <DotLoader isLoading={isListening} />
+                ) : (
+                  <MicrophoneIcon />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      ) : (
+        <></>
+      )}
     </KeyboardAvoidingView>
     // </View>
   );
@@ -853,6 +900,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
+  },
+  quotaContainer: {
+    height: 38,
+    backgroundColor: '#2D31A6',
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  quotaText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'white',
+    fontWeight: 500,
+  },
+  quotaButton: {
+    backgroundColor: '#EEF4FF',
+    borderRadius: 16,
+    paddingLeft: 6,
+    paddingRight: 8,
+    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 

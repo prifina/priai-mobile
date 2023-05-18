@@ -39,6 +39,7 @@ const MainNavigator = () => {
   const [shareCount, setShareCount] = useState(100);
   const [shareMessage, setShareMessage] = useState('Default share message');
   const [userId, setUserId] = useState(null);
+  const [numberOfPrompts, setNumberOfPrompts] = useState(0);
 
   const {initHealthKit, getData, getSteps} = useHealthKitHooks();
 
@@ -160,6 +161,23 @@ const MainNavigator = () => {
   console.log('MAIN, userID, shareCount', userId, shareCount);
 
   //////////
+  //number of prompts asked
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const storedValue = await AsyncStorage.getItem('numberOfPrompts');
+        if (storedValue !== null) {
+          setNumberOfPrompts(parseInt(storedValue));
+        }
+      } catch (error) {
+        // Error retrieving data
+        console.log(error);
+      }
+    })();
+  }, []);
+
+  ////
 
   useEffect(() => {
     setIsLoading(true);
@@ -179,6 +197,8 @@ const MainNavigator = () => {
     shareCount,
     setShareCount,
     userId,
+    numberOfPrompts,
+    setNumberOfPrompts,
   };
 
   return (
