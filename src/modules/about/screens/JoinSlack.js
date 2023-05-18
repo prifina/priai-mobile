@@ -20,21 +20,33 @@ const JoinSlack = ({navigation}) => {
     const url =
       'https://join.slack.com/t/libertyequalitydata/shared_invite/zt-1v29o2v1y-2PI3eZNfZFeonhlYWMRB9g'; //30 days active
 
+    const urlLED = 'http://libertyequalitydata.com';
+
     // check if the Slack app installed
+    // Linking.canOpenURL(url)
+    //   .then(supported => {
+    //     if (!supported) {
+    //       Linking.openURL('http://apps.apple.com/app/slack/id618783545');
+    //     } else {
+    //       return Linking.openURL(url);
+    //     }
+    //   })
+    //   .catch(err => console.error('An error occurred', err));
+
     Linking.canOpenURL(url)
       .then(supported => {
         if (!supported) {
-          Linking.openURL('https://apps.apple.com/app/slack/id618783545');
+          Linking.openURL(urlLED); // Open the alternative URL
         } else {
-          return Linking.openURL(url);
+          Linking.openURL(url); // Open the Slack URL
         }
       })
       .catch(err => console.error('An error occurred', err));
   };
 
   return (
-    <View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer}>
         <View style={styles.imageContainer}>
           <Image source={slackBanner} style={styles.image} />
           <View style={styles.textContainer}>
@@ -82,30 +94,25 @@ const JoinSlack = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
-      <TouchableOpacity
-        title="Join Slack"
-        onPress={openSlack}
-        style={styles.button}>
-        <Text
-          style={{
-            color: 'white',
-            lineHeight: 24,
-            fontSize: 16,
-            fontWeight: '600',
-            marginRight: 10.5,
-          }}>
-          Join the revolution
-        </Text>
-        <LinkExternalIcon />
-      </TouchableOpacity>
+      <View style={{paddingHorizontal: 20}}>
+        <TouchableOpacity
+          title="Join Slack"
+          onPress={openSlack}
+          style={styles.button}>
+          <Text style={styles.buttonText}>Join the revolution</Text>
+          <LinkExternalIcon />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    // padding: 10,
-    position: 'relative',
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   imageContainer: {
     justifyContent: 'center',
@@ -142,20 +149,24 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     lineHeight: 24,
     fontSize: 16,
+    marginRight: 10,
   },
+
   button: {
-    position: 'sticky',
-    bottom: 16,
-    marginHorizontal: 12,
-    height: 48,
-    backgroundColor: '#0E9384',
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    height: 48,
+    backgroundColor: '#0E9384',
+    borderRadius: 8,
+    marginHorizontal: 0,
     marginBottom: 32,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
   },
 });
 

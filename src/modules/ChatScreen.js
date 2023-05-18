@@ -19,6 +19,7 @@ import {
   Button,
   Animated,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import {useHeaderHeight} from '@react-navigation/elements';
@@ -34,6 +35,8 @@ import SendIcon from '../assets/send-icon.svg';
 import MicrophoneIcon from '../assets/microphone.svg';
 import UpgradeIcon from '../assets/upgrade-button-icon.svg';
 import ChatItem from './chat/ChatItem';
+
+import SendIconDisabled from '../assets/send-icon-disabled.svg';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -701,6 +704,12 @@ const ChatScreen = ({navigation, route}) => {
 
       if (numberOfPrompts === shareCount) {
         setQuota(true);
+        Alert.alert(
+          'Alert',
+          'No more answers left!',
+          [{text: 'OK', onPress: () => console.log('OK pressed')}],
+          {cancelable: false},
+        );
       }
     } catch (error) {
       console.log(error);
@@ -805,6 +814,9 @@ const ChatScreen = ({navigation, route}) => {
       {/* {isListening ? <DotLoader isLoading={isListening} /> : null} */}
       {/* <Button title="Get steps" onPress={handleSteps} />
       <Button title="create table" onPress={createTable} /> */}
+      <View style={{marginBottom: 10}}>
+        {isLoading ? <ActivityIndicator size="large" /> : null}
+      </View>
       {!quota ? (
         <View style={styles.inputWrapper}>
           <View style={styles.inputContainer}>
@@ -817,13 +829,14 @@ const ChatScreen = ({navigation, route}) => {
               returnKeyType="done"
             />
             <View style={styles.iconsContainer}>
-              <TouchableOpacity onPress={handleSubmit}>
-                {isLoading ? <DotLoader isLoading={isLoading} /> : <SendIcon />}
+              <TouchableOpacity onPress={handleSubmit} disabled={isLoading}>
+                {isLoading ? <SendIconDisabled /> : <SendIcon />}
               </TouchableOpacity>
               <TouchableOpacity
                 style={{marginLeft: 5, marginRight: 5}}
                 // onPressIn={startListening}
                 // onPressOut={stopListening}
+
                 onPress={isListening ? stopListening : startListening}>
                 {isListening ? (
                   <DotLoader isLoading={isListening} />

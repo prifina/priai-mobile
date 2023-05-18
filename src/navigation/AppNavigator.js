@@ -66,6 +66,8 @@ const AppNavigator = () => {
               )}
             </TouchableOpacity>
           ),
+
+          header: demo ? () => null : undefined,
         }}
       />
       <Tab.Screen

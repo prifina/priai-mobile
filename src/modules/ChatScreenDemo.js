@@ -16,9 +16,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Animated,
+  SafeAreaView,
+  Dimensions,
 } from 'react-native';
-
-import {useHeaderHeight} from '@react-navigation/elements';
 
 import {Configuration, OpenAIApi} from 'openai';
 
@@ -50,16 +50,7 @@ const ChatScreenDemo = ({navigation}) => {
 
   // useLayoutEffect(() => {
   //   navigation.setOptions({
-  //     headerRight: () => (
-  //       <TouchableOpacity
-  //         style={{marginRight: 16}}
-  //         onPress={() => handleClearChat()}
-  //         title="Save">
-  //         <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
-  //           Clear chat
-  //         </Text>
-  //       </TouchableOpacity>
-  //     ),
+  //     header: () => {},
   //   });
   // }, [navigation]);
 
@@ -209,13 +200,14 @@ const ChatScreenDemo = ({navigation}) => {
 
   // console.log('conversation', conversation);
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      // keyboardVerticalOffset={deviceHeight + 55}
-    >
-      {/* {error !== '' && (
+  // return (
+  //   <KeyboardAvoidingView
+  //     style={styles.container}
+  //     behavior="padding"
+  //     keyboardVerticalOffset={deviceHeight + 55}
+  //   >
+  {
+    /* {error !== '' && (
         <View style={styles.responseContainer}>
           <Text style={styles.responseText}>{error}</Text>
         </View>
@@ -262,9 +254,40 @@ const ChatScreenDemo = ({navigation}) => {
             </TouchableOpacity>
           </View>
         </View>
-      </View> */}
-      <WebView source={{uri: 'https://priai-mobile-vercel-demo.vercel.app/'}} />
+      </View> */
+  }
+  {
+    /* <WebView source={{uri: 'https://priai-mobile-vercel-demo.vercel.app/'}} />
     </KeyboardAvoidingView>
+  ); */
+  }
+  const [webViewWidth, setWebViewWidth] = useState(
+    Dimensions.get('window').width,
+  );
+
+  useEffect(() => {
+    const handleDimensionsChange = ({window}) => {
+      setWebViewWidth(window.width);
+    };
+
+    Dimensions.addEventListener('change', handleDimensionsChange);
+
+    return () => {
+      Dimensions.removeEventListener('change', handleDimensionsChange);
+    };
+  }, []);
+
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#fff',
+      }}>
+      <WebView
+        style={{width: webViewWidth}}
+        source={{uri: 'https://priai-mobile-vercel-demo.vercel.app/'}}
+      />
+    </SafeAreaView>
   );
 };
 
