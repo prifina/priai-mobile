@@ -152,7 +152,7 @@ const ProfileScreen = ({navigation}) => {
 
           <Switch value={demo} onValueChange={handleSwitchDemoMode} />
         </View>
-        <Text style={{fontSize: 16, marginBottom: 12}}>
+        <Text style={{fontSize: 16, marginBottom: 16}}>
           Experience the full capabilities of Pri-AI, using artificial
           connections and data.
         </Text>
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginBottom: 12,
   },
   text: {
     fontSize: 16,

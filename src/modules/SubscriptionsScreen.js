@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
-import {View, Text, Button} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import axios from 'axios';
 import Share from 'react-native-share';
 
@@ -12,6 +12,12 @@ import {
 import AppContext from '../hoc/AppContext';
 
 import config from '../../config';
+import ContentWrapper from '../components/ContentWrapper';
+
+import ShareButtonIcon from '../assets/button-icons/share-button-icon.svg';
+import GiftButtonIcon from '../assets/button-icons/gift-button-icon.svg';
+import SmileButtonIcon from '../assets/button-icons/smile-button-icon.svg';
+import LinkExternalIcon from '../assets/link-external.svg';
 
 const SubscriptionsScreen = () => {
   const {userId, shareCount, setShareCount, shareMessage} =
@@ -71,14 +77,123 @@ const SubscriptionsScreen = () => {
   };
 
   return (
-    <>
-      <Button
-        title="Share"
-        onPress={onShare}
-        disabled={shareMessage == '' ? true : false}
-      />
-      <Text>{shareCount}</Text>
-    </>
+    <ContentWrapper title="Upgrade">
+      <Text
+        style={{
+          fontSize: 18,
+          color: '#134E48',
+          fontWeight: 600,
+          marginBottom: 12,
+        }}>
+        No questions left?
+      </Text>
+      <Text style={{fontSize: 18, marginBottom: 40}}>
+        No problem, share Pri-AI with friends to receive 100 additional
+        questions.
+      </Text>
+      <View
+        style={{
+          backgroundColor: '#F6FEFC',
+          borderWidth: 1,
+          borderColor: '#99F6E0',
+          borderRadius: 16,
+          padding: 16,
+        }}>
+        <Text
+          style={{
+            fontSize: 20,
+            color: '#134E48',
+            fontWeight: 600,
+            marginBottom: 30,
+            lineHeight: 30,
+          }}>
+          How it works
+        </Text>
+        <View style={{flexDirection: 'row', marginBottom: 24}}>
+          <ShareButtonIcon />
+          <View style={{marginLeft: 12}}>
+            <Text
+              style={{
+                fontSize: 18,
+                color: '#134E48',
+                fontWeight: 600,
+                lineHeight: 24,
+              }}>
+              Invite friends
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#475467',
+                fontWeight: 400,
+                lineHeight: 20,
+              }}>
+              Click the share button below and
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#475467',
+                fontWeight: 400,
+                lineHeight: 20,
+              }}>
+              share with friends.
+            </Text>
+          </View>
+        </View>
+        <View style={{flexDirection: 'row', marginBottom: 50}}>
+          <SmileButtonIcon />
+          <View style={{marginLeft: 12}}>
+            <Text
+              style={{
+                fontSize: 18,
+                color: '#134E48',
+                fontWeight: 600,
+                lineHeight: 24,
+              }}>
+              Receive your questions
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#475467',
+                fontWeight: 400,
+                lineHeight: 20,
+              }}>
+              We will add 100 questions to your quota.
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={{
+            marginHorizontal: 12,
+            height: 48,
+            backgroundColor: '#0E9384',
+            borderRadius: 8,
+            padding: 10,
+            marginTop: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 32,
+          }}
+          title="Share"
+          onPress={onShare}
+          disabled={shareMessage == '' ? true : false}>
+          <Text
+            style={{
+              color: 'white',
+              lineHeight: 24,
+              fontSize: 16,
+              fontWeight: '600',
+              marginRight: 10.5,
+            }}>
+            Invite friends
+          </Text>
+          <LinkExternalIcon />
+        </TouchableOpacity>
+      </View>
+    </ContentWrapper>
   );
 };
 
