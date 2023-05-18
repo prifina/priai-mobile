@@ -152,7 +152,7 @@ const ProfileScreen = ({navigation}) => {
 
           <Switch value={demo} onValueChange={handleSwitchDemoMode} />
         </View>
-        <Text style={{fontSize: 16, marginBottom: 16}}>
+        <Text style={{fontSize: 16, marginBottom: 20}}>
           Experience the full capabilities of Pri-AI, using artificial
           connections and data.
         </Text>
