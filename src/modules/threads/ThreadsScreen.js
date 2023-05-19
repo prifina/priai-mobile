@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -63,6 +63,22 @@ const ThreadsScreen = ({navigation}) => {
     setThreads(newThreads);
   };
 
+  const swipeableRow = useRef(null);
+
+  const handleSwipeFromRightToLeft = swipeableRow => {
+    if (swipeableRow.current) {
+      swipeableRow.current.close();
+    }
+    // trigger left swipe action here...
+  };
+
+  const handleSwipeFromLeftToRight = swipeableRow => {
+    if (swipeableRow.current) {
+      swipeableRow.current.close();
+    }
+    // trigger right swipe action here...
+  };
+
   const renderThread = ({item}) => {
     const formattedDate = formatDate(item.timeLastEdited);
 
@@ -81,7 +97,7 @@ const ThreadsScreen = ({navigation}) => {
         <TouchableOpacity
           style={styles.leftAction}
           onPress={() => handleThreadRename(item)}>
-          <Text style={styles.leftActionText}>Rename</Text>
+          <Text style={styles.leftActionText}>Edit</Text>
         </TouchableOpacity>
       );
     };
@@ -109,10 +125,15 @@ const ThreadsScreen = ({navigation}) => {
 
     return (
       <Swipeable
+        ref={swipeableRow}
         renderRightActions={renderRightActions}
         renderLeftActions={renderLeftActions}
         onSwipeableWillOpen={() => setSwiping(true)}
-        onSwipeableWillClose={() => setSwiping(false)}>
+        onSwipeableWillClose={() => setSwiping(false)}
+        onSwipeableRightOpen={() => handleSwipeFromLeftToRight(swipeableRow)}
+        onSwipeableLeftOpen={() => handleSwipeFromRightToLeft(swipeableRow)}
+        overshootFriction={8}
+        useNativeAnimations>
         <TouchableOpacity onPress={handleThreadPress}>
           <View style={styles.threadItem}>
             <View
@@ -245,6 +266,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 48,
     justifyContent: 'space-between',
+    zIndex: 1,
+    backgroundColor: 'white',
   },
   itemSeparator: {
     borderBottomWidth: 1,
@@ -257,22 +280,23 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   leftAction: {
-    backgroundColor: '#1E90FF',
     justifyContent: 'center',
     alignItems: 'flex-start',
     paddingLeft: 16,
     width: 80,
-  },
-  leftActionText: {
-    color: '#FFFFFF',
+    backgroundColor: '#1E90FF',
   },
   rightAction: {
-    backgroundColor: '#FF0000',
     justifyContent: 'center',
     alignItems: 'flex-end',
     paddingRight: 16,
     width: 80,
+    backgroundColor: '#FF0000',
   },
+  leftActionText: {
+    color: '#FFFFFF',
+  },
+
   rightActionText: {
     color: '#FFFFFF',
   },
