@@ -42,15 +42,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import useDatabaseHooks from '../utils/useDatabaseHooks';
 
-import {formatDateToHoursAndMinutes} from '../utils/dateUtils';
+import {
+  formatDateToHoursAndMinutes,
+  isSameDay,
+  addDays,
+  lastDayOfWeek,
+  monthNames,
+  daysOfWeek,
+} from '../utils/dateUtils';
 
 import config from '../../config';
 import Toast from '../components/Toast';
 
 import useToast from '../utils/useToast';
-
-import handleStepsQuery from './chat/handlers/stepsHandler';
-import handleCaloriesQuery from './chat/handlers/caloriesHandler';
 
 const configuration = new Configuration({
   apiKey: config.OPENAI_API_KEY,
@@ -69,7 +73,8 @@ const ChatScreen = ({navigation, route}) => {
     shareCount,
   } = useContext(AppContext);
 
-  const {retrieveData} = useDatabaseHooks();
+  const {createTable, insertData, retrieveData, calculateAverage} =
+    useDatabaseHooks();
 
   const {toastConfig, showToast, hideToast} = useToast();
 
@@ -182,50 +187,510 @@ const ChatScreen = ({navigation, route}) => {
     setIsLoading(true);
 
     if (prompt.toLowerCase().includes('steps')) {
-      const {apiResponse, conversation} = handleStepsQuery(
-        prompt,
-        defaultValues,
-        formattedDate,
-        retrieveData,
-      );
-      setApiResponse(apiResponse);
-      setConversation(conversation);
-    } else if (prompt.toLowerCase().includes('calories')) {
-      const {apiResponse, conversation} = handleCaloriesQuery(
-        prompt,
-        defaultValues,
-        formattedDate,
-        retrieveData,
-      );
-      setApiResponse(apiResponse);
-      setConversation(conversation);
-    } else {
-      try {
-        const result = await openai.createCompletion({
-          model: 'text-davinci-003',
-          prompt: prompt,
-          temperature: 0,
-          max_tokens: 200,
+      if (prompt.toLowerCase().includes('today')) {
+        retrieveData('Steps', steps => {
+          const todaySteps = steps.find(step =>
+            isSameDay(new Date(step.date), new Date()),
+          );
+          if (todaySteps) {
+            setApiResponse(`You have taken ${todaySteps.steps} steps today.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+
+              {
+                speaker: defaultValues.aiName,
+                message: `You have taken ${todaySteps.steps} steps today.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have taken 0 steps today.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have taken 0 steps today.`,
+                time: formattedDate,
+              },
+            ]);
+          }
         });
-        const response = result.data.choices[0].text;
-        setApiResponse(response);
-        setConversation([
-          ...conversation,
-          {speaker: defaultValues.name, message: prompt, time: formattedDate},
-          {
-            speaker: defaultValues.aiName,
-            message: response,
-            time: formattedDate,
-          },
-        ]);
+      } else if (prompt.toLowerCase().includes('last')) {
+        for (let day of daysOfWeek) {
+          if (prompt.toLowerCase().includes(`last ${day}`)) {
+            retrieveData('Steps', steps => {
+              const lastDaySteps = steps.find(step =>
+                isSameDay(new Date(step.date), lastDayOfWeek(day)),
+              );
+              if (lastDaySteps) {
+                setApiResponse(
+                  `You have taken ${lastDaySteps.steps} steps last ${day}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have taken ${lastDaySteps.steps} steps last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              } else {
+                setApiResponse(`You have taken 0 steps last ${day}.`);
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have taken 0 steps last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              }
+            });
+            break;
+          }
+        }
+      } else if (prompt.toLowerCase().includes('yesterday')) {
+        retrieveData('Steps', steps => {
+          const yesterdaySteps = steps.find(step =>
+            isSameDay(new Date(step.date), addDays(new Date(), -1)),
+          );
+          if (yesterdaySteps) {
+            setApiResponse(
+              `You have taken ${yesterdaySteps.steps} steps yesterday.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+
+              {
+                speaker: defaultValues.aiName,
+                message: `You have taken ${yesterdaySteps.steps} steps yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have taken 0 steps yesterday.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+
+              {
+                speaker: defaultValues.aiName,
+                message: `You have taken 0 steps yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('average')) {
+        // Parse date range from user input
+        const dateRegex =
+          /average from ([a-zA-Z]+\s\d{1,2},\s\d{4}) to ([a-zA-Z]+\s\d{1,2},\s\d{4})/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const startDate = new Date(match[1]);
+          const endDate = new Date(match[2]);
+          if (startDate && endDate) {
+            calculateAverage('Steps', 'steps', startDate, endDate, average => {
+              setApiResponse(
+                `Your average steps from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                  average,
+                )}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `Your average steps from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                    average,
+                  )}.`,
+                  time: formattedDate,
+                },
+              ]);
+            });
+          } else {
+            setApiResponse(
+              'Sorry, I did not understand the date range. Please use the format "Month Day, Year".',
+            );
+            setIsLoading(false);
+          }
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+        }
+      } else if (prompt.toLowerCase().includes('on')) {
+        // Retrieve step count for a specific date
+
+        const dateRegex =
+          /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const month = monthNames.indexOf(match[1].toLowerCase());
+          const day = parseInt(match[2], 10);
+          const year = match[3]
+            ? parseInt(match[3], 10)
+            : new Date().getFullYear(); // If year is not specified, use current year
+          const selectedDate = new Date(year, month, day);
+
+          retrieveData('Steps', steps => {
+            const selectedDateSteps = steps.find(step =>
+              isSameDay(new Date(step.date), selectedDate),
+            );
+            if (selectedDateSteps) {
+              setApiResponse(
+                `You have taken ${
+                  selectedDateSteps.steps
+                } steps on ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `You have taken ${
+                    selectedDateSteps.steps
+                  } steps on ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            } else {
+              setApiResponse(
+                `No step count data available for ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `No step count data available for ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            }
+          });
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        setApiResponse('Sorry, I did not understand your question.');
         setIsLoading(false);
-      } catch (e) {
-        console.log(e);
-        setApiResponse('Something went wrong. Please try again.');
-        setIsLoading(false);
+        return;
       }
+      setIsLoading(false);
+      setIsListening(false);
+      setPrompt('');
+      return;
     }
 
+    ///here implement calories statement
+    if (prompt.toLowerCase().includes('calories')) {
+      if (prompt.toLowerCase().includes('today')) {
+        retrieveData('Calories', calories => {
+          const todayCalories = calories.find(calorie =>
+            isSameDay(new Date(calorie.date), new Date()),
+          );
+          if (todayCalories) {
+            setApiResponse(
+              `You have burned ${todayCalories.calories} calories today.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned ${todayCalories.calories} calories today.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have burned 0 calories today.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned 0 calories today.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('last')) {
+        for (let day of daysOfWeek) {
+          if (prompt.toLowerCase().includes(`last ${day}`)) {
+            retrieveData('Calories', calories => {
+              const lastDayCalories = calories.find(calorie =>
+                isSameDay(new Date(calorie.date), lastDayOfWeek(day)),
+              );
+              if (lastDayCalories) {
+                setApiResponse(
+                  `You have burned ${lastDayCalories.calories} calories last ${day}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have burned ${lastDayCalories.calories} calories last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              } else {
+                setApiResponse(`You have burned 0 calories last ${day}.`);
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have burned 0 calories last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              }
+            });
+            break;
+          }
+        }
+      } else if (prompt.toLowerCase().includes('yesterday')) {
+        retrieveData('Calories', calories => {
+          const yesterdayCalories = calories.find(calorie =>
+            isSameDay(new Date(calorie.date), addDays(new Date(), -1)),
+          );
+          if (yesterdayCalories) {
+            setApiResponse(
+              `You have burned ${yesterdayCalories.calories} calories yesterday.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned ${yesterdayCalories.calories} calories yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have burned 0 calories yesterday.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have burned 0 calories yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('average')) {
+        // Parse date range from user input
+        const dateRegex =
+          /average from ([a-zA-Z]+\s\d{1,2},\s\d{4}) to ([a-zA-Z]+\s\d{1,2},\s\d{4})/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const startDate = new Date(match[1]);
+          const endDate = new Date(match[2]);
+          if (startDate && endDate) {
+            calculateAverage(
+              'Calories',
+              'calories',
+              startDate,
+              endDate,
+              average => {
+                setApiResponse(
+                  ` Your average calories burned from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                    average,
+                  )}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `Your average calories burned from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                      average,
+                    )}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              },
+            );
+          } else {
+            setApiResponse(
+              'Sorry, I did not understand the date range. Please use the format "Month Day, Year".',
+            );
+            setIsLoading(false);
+          }
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+        }
+      } else if (prompt.toLowerCase().includes('on')) {
+        // Retrieve calories burned for a specific date
+        const dateRegex =
+          /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const month = monthNames.indexOf(match[1].toLowerCase());
+          const day = parseInt(match[2], 10);
+          const year = match[3]
+            ? parseInt(match[3], 10)
+            : new Date().getFullYear();
+          const selectedDate = new Date(year, month, day);
+          retrieveData('Calories', calories => {
+            const selectedDateCalories = calories.find(calorie =>
+              isSameDay(new Date(calorie.date), selectedDate),
+            );
+            if (selectedDateCalories) {
+              setApiResponse(
+                `You have burned ${
+                  selectedDateCalories.calories
+                } calories on ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `You have burned ${
+                    selectedDateCalories.calories
+                  } calories on ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            } else {
+              setApiResponse(
+                `No calories data available for ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `No calories data available for ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            }
+          });
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+          setIsLoading(false);
+        }
+      } else {
+        setApiResponse('Sorry, I did not understand your question.');
+        setIsLoading(false);
+      }
+      setIsLoading(false);
+      setIsListening(false);
+      setPrompt('');
+
+      return;
+    }
+    /////
+
+    try {
+      const result = await openai.createCompletion({
+        // model: 'gpt-3.5-turbo',
+        model: 'text-davinci-003',
+        prompt: prompt,
+        temperature: 0,
+        max_tokens: 200,
+      });
+      const response = result.data.choices[0].text;
+      setApiResponse(response);
+      setConversation([
+        ...conversation,
+        {speaker: defaultValues.name, message: prompt, time: formattedDate},
+        {speaker: defaultValues.aiName, message: response, time: formattedDate},
+      ]);
+      setIsLoading(false);
+    } catch (e) {
+      console.log(e);
+      setApiResponse('Something went wrong. Please try again.');
+      setIsLoading(false);
+    }
     setPrompt('');
 
     ///number of prompts asked
