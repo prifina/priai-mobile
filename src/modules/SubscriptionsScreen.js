@@ -212,7 +212,7 @@ const SubscriptionsScreen = () => {
             style={{
               marginHorizontal: 12,
               height: 48,
-              backgroundColor: '#0E9384',
+              backgroundColor: shareMessage == '' ? 'gray' : '#0E9384',
               borderRadius: 8,
               padding: 10,
               marginTop: 16,
@@ -234,8 +234,21 @@ const SubscriptionsScreen = () => {
               }}>
               Invite friends
             </Text>
+
             <LinkExternalIcon />
           </TouchableOpacity>
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 14,
+              color: '#475467',
+              fontWeight: 400,
+              lineHeight: 20,
+            }}>
+            {shareMessage == ''
+              ? 'Invite friends will be available soon!'
+              : null}
+          </Text>
         </View>
       </ContentWrapper>
     </>
