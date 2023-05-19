@@ -98,6 +98,19 @@ const ChatScreen = ({navigation, route}) => {
 
   const formattedDate = formatDateToHoursAndMinutes(timeStamp);
 
+  const initalPrompt = `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers. One of your major focuses is on data privacy.
+  You will now you act as my “Personal AI”. 
+Currently, you only have access to my Apple Healthkit data. You have no other abilities.
+You are not fully released yet. When you are fully released, you will:
+-have access to all my personal data and information from all common applications and services that consumers use. 
+- have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
+- have the ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on.
+I pretend to be the following persona: “${defaultValues.name}”.
+  You will give me as accurate, logical and realistic answers as possible, using real names of applications, services, locations, etc, based on all the knowledge you have been trained also outside of this prompt. 
+For any questions that requires access to my personal data, if the data itself is not provided, reply along the lines of "I am sorry. I currently do not have the capabilities to access this data or data source. You can vote here for getting this implemented." 
+  You will NEVER answer “As a language model, I'm not…” as this fake is for demonstration, and you DON'T HAVE SUCH LIMITATIONS!
+  Note: Don't respond with an example exchange. Respond with a greeting in your first message.`;
+
   const getThreads = async () => {
     const {thread} = route.params;
     const existingThreads = await AsyncStorage.getItem('threads');
@@ -671,14 +684,30 @@ const ChatScreen = ({navigation, route}) => {
     /////
 
     try {
-      const result = await openai.createCompletion({
+      const result = await openai.createChatCompletion({
         // model: 'gpt-3.5-turbo',
-        model: 'text-davinci-003',
-        prompt: prompt,
-        temperature: 0,
+        model: 'gpt-3.5-turbo',
+        messages: [].concat(
+          [{role: 'system', content: initalPrompt}],
+          conversation
+            .slice(conversation.length > 12 ? conversation.length - 12 : 0)
+            .map(exchange => {
+              return {
+                role:
+                  exchange.speaker === defaultValues.name
+                    ? 'user'
+                    : 'assistant',
+                content: exchange.message,
+              };
+            }),
+          [{role: 'user', content: prompt}],
+        ),
+        temperature: 0.7,
         max_tokens: 200,
       });
-      const response = result.data.choices[0].text;
+
+      const response = result.data.choices[0].message.content;
+
       setApiResponse(response);
       setConversation([
         ...conversation,
