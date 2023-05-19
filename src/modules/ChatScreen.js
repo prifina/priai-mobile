@@ -145,30 +145,30 @@ For any questions that requires access to my personal data, if the data itself i
     };
   }, [conversation]);
 
-  const handleClearChat = () => {
-    setConversation([]);
+  // const handleClearChat = () => {
+  //   setConversation([]);
 
-    setIsLoading(false);
-    setIsListening(false);
+  //   setIsLoading(false);
+  //   setIsListening(false);
 
-    showToast('Your action was successful!', 'success');
-  };
+  //   showToast('Your action was successful!', 'success');
+  // };
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        conversation.length !== 0 ? (
-          <TouchableOpacity
-            style={{marginRight: 16}}
-            onPress={() => handleClearChat()}
-            title="Save">
-            <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
-              Clear chat
-            </Text>
-          </TouchableOpacity>
-        ) : null,
-    });
-  }, [conversation]);
+  // useEffect(() => {
+  //   navigation.setOptions({
+  //     headerRight: () =>
+  //       conversation.length !== 0 ? (
+  //         <TouchableOpacity
+  //           style={{marginRight: 16}}
+  //           onPress={() => handleClearChat()}
+  //           title="Save">
+  //           <Text style={{color: '#107569', fontSize: 14, fontWeight: 600}}>
+  //             Clear chat
+  //           </Text>
+  //         </TouchableOpacity>
+  //       ) : null,
+  //   });
+  // }, [conversation]);
 
   // check for first launch
   useEffect(() => {
