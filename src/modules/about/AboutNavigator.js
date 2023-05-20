@@ -15,9 +15,9 @@ const AboutStack = createNativeStackNavigator();
 const AboutNavigator = ({navigation}) => {
   return (
     <AboutStack.Navigator
-      presentation="fullScreenModal"
+      presentation="fullScreenModal" ///???
       screenOptions={{
-        presentation: 'modal',
+        presentation: 'fullScreenModal',
         headerLeft: () => <BackButton navigation={navigation} />,
       }}>
       <AboutStack.Screen
@@ -27,11 +27,41 @@ const AboutNavigator = ({navigation}) => {
           headerShown: false,
         }}
       />
-      <AboutStack.Screen name="AboutPrifina" component={AboutPrifina} />
-      <AboutStack.Screen name="DataHandle" component={DataHandle} />
-      <AboutStack.Screen name="PrivacyRoadmap" component={PrivacyRoadmap} />
-      <AboutStack.Screen name="Terms" component={Terms} />
-      <AboutStack.Screen name="JoinSlack" component={JoinSlack} />
+      <AboutStack.Screen
+        name="AboutPrifina"
+        component={AboutPrifina}
+        options={{
+          headerTitle: '',
+        }}
+      />
+      <AboutStack.Screen
+        name="DataHandle"
+        component={DataHandle}
+        options={{
+          headerTitle: '',
+        }}
+      />
+      <AboutStack.Screen
+        name="PrivacyRoadmap"
+        component={PrivacyRoadmap}
+        options={{
+          headerTitle: '',
+        }}
+      />
+      <AboutStack.Screen
+        name="Terms"
+        component={Terms}
+        options={{
+          headerTitle: '',
+        }}
+      />
+      <AboutStack.Screen
+        name="JoinSlack"
+        component={JoinSlack}
+        options={{
+          headerTitle: '',
+        }}
+      />
     </AboutStack.Navigator>
   );
 };

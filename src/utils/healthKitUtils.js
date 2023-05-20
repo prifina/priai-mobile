@@ -7,6 +7,7 @@ const permissions = {
     read: [
       AppleHealthKit.Constants.Permissions.StepCount,
       AppleHealthKit.Constants.Permissions.ActiveEnergyBurned,
+      AppleHealthKit.Constants.Permissions.DistanceWalkingRunning,
     ],
   },
 };
@@ -58,24 +59,25 @@ const useHealthKitHooks = () => {
     });
   };
 
-  const getData = async dataType => {
+  const getCalories = async () => {
     return new Promise((resolve, reject) => {
       AppleHealthKit.getActiveEnergyBurned(options, (err, results) => {
         if (err) {
-          console.log(`Error getting ${dataType} data:`, err);
+          console.log('Error getting calories data:', err);
           reject(err);
         } else {
-          console.log('results', results);
+          console.log('calories results', results);
 
-          const dataPerDay = {};
+          const caloriesPerDay = {};
 
           results.forEach(entry => {
-            const date = new Date(entry.start).toDateString();
-            dataPerDay[date] = (dataPerDay[date] || 0) + entry.quantity;
+            const date = new Date(entry.startDate).toDateString();
+            caloriesPerDay[date] = (caloriesPerDay[date] || 0) + entry.value;
           });
 
-          for (const [date, data] of Object.entries(dataPerDay)) {
-            insertData(dataType, dataType.toLowerCase(), date, data);
+          for (const [date, calories] of Object.entries(caloriesPerDay)) {
+            insertData('Calories', 'calories', date, calories);
+            console.log('success', date, calories);
           }
 
           resolve(true);
@@ -84,12 +86,72 @@ const useHealthKitHooks = () => {
     });
   };
 
-  return {initHealthKit, getData, getSteps};
+  const getDistance = async () => {
+    return new Promise((resolve, reject) => {
+      AppleHealthKit.getDailyDistanceWalkingRunningSamples(
+        {...options, unit: 'meter'},
+        (err, results) => {
+          if (err) {
+            console.log('Error getting distance data:', err);
+            reject(err);
+          } else {
+            console.log('distance results', results);
+
+            const distancePerDay = {};
+
+            results.forEach(entry => {
+              const date = new Date(entry.startDate).toDateString();
+              distancePerDay[date] = (distancePerDay[date] || 0) + entry.value;
+            });
+
+            for (const [date, distance] of Object.entries(distancePerDay)) {
+              insertData('Distance', 'distance', date, distance);
+              console.log('success', date, distance);
+            }
+
+            resolve(true);
+          }
+        },
+      );
+    });
+  };
+
+  const getData = async dataType => {
+    return new Promise((resolve, reject) => {
+      AppleHealthKit.getActiveEnergyBurned(
+        {
+          ...options,
+          type: dataType,
+        },
+        (err, results) => {
+          if (err) {
+            console.log(`Error getting ${dataType} data:`, err);
+            reject(err);
+          } else {
+            console.log('results', results);
+
+            const dataPerDay = {};
+
+            results.forEach(entry => {
+              const date = new Date(entry.start).toDateString();
+              dataPerDay[date] = (dataPerDay[date] || 0) + entry.value;
+            });
+
+            for (const [date, data] of Object.entries(dataPerDay)) {
+              insertData(dataType, dataType.toLowerCase(), date, data);
+            }
+
+            resolve(true);
+          }
+        },
+      );
+    });
+  };
+
+  return {initHealthKit, getData, getSteps, getCalories, getDistance};
 };
 
 export default useHealthKitHooks;
-
-
 
 // CHECK THIS
 // import { useState } from 'react';

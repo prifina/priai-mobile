@@ -41,7 +41,8 @@ const MainNavigator = () => {
   const [userId, setUserId] = useState(null);
   const [numberOfPrompts, setNumberOfPrompts] = useState(0);
 
-  const {initHealthKit, getData, getSteps} = useHealthKitHooks();
+  const {initHealthKit, getData, getSteps, getDistance, getCalories} =
+    useHealthKitHooks();
 
   const checkHKStatus = async () => {
     setIsLoading(true);
@@ -49,8 +50,9 @@ const MainNavigator = () => {
       const initSuccess = await initHealthKit();
       if (initSuccess) {
         const stepsSuccess = await getSteps('Steps');
-        // const caloriesSuccess = await getData('Calories');
-        if (stepsSuccess) {
+        const caloriesSuccess = await getCalories('Calories');
+        const distanceSuccess = await getDistance('Distance');
+        if (stepsSuccess && caloriesSuccess && distanceSuccess) {
           setIsLoading(false);
           Alert.alert(
             'Success',
@@ -62,6 +64,7 @@ const MainNavigator = () => {
       }
     } catch (error) {
       setIsLoading(false);
+      console.log('Health data retrieval error:', error);
       Alert.alert(
         'Error',
         'Failed to retrieve health data. Please try again.',

@@ -680,7 +680,258 @@ For any questions that requires access to my personal data, if the data itself i
       setPrompt('');
 
       return;
+    } else if (prompt.toLowerCase().includes('distance')) {
+      if (prompt.toLowerCase().includes('today')) {
+        retrieveData('Distance', distances => {
+          const todayDistance = distances.find(distance =>
+            isSameDay(new Date(distance.date), new Date()),
+          );
+          if (todayDistance) {
+            setApiResponse(
+              `You have walked ${Math.round(
+                todayDistance.distance,
+              )} meters today.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have walked ${Math.round(
+                  todayDistance.distance,
+                )} meters today.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have walked 0 meters today.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have walked 0 meters today.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('last')) {
+        for (let day of daysOfWeek) {
+          if (prompt.toLowerCase().includes(`last ${day}`)) {
+            retrieveData('Distance', distances => {
+              const lastDayDistance = distances.find(distance =>
+                isSameDay(new Date(distance.date), lastDayOfWeek(day)),
+              );
+              if (lastDayDistance) {
+                setApiResponse(
+                  `You have walked ${Math.round(
+                    lastDayDistance.distance,
+                  )} meters last ${day}.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have walked ${Math.round(
+                      lastDayDistance.distance,
+                    )} meters last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              } else {
+                setApiResponse(`You have walked 0 meters last ${day}.`);
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `You have walked 0 meters last ${day}.`,
+                    time: formattedDate,
+                  },
+                ]);
+              }
+            });
+            break;
+          }
+        }
+      } else if (prompt.toLowerCase().includes('yesterday')) {
+        retrieveData('Distance', distances => {
+          const yesterdayDistance = distances.find(distance =>
+            isSameDay(new Date(distance.date), addDays(new Date(), -1)),
+          );
+          if (yesterdayDistance) {
+            setApiResponse(
+              `You have walked ${Math.round(
+                yesterdayDistance.distance,
+              )} meters yesterday.`,
+            );
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have walked ${Math.round(
+                  yesterdayDistance.distance,
+                )} meters yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          } else {
+            setApiResponse(`You have walked 0 meters yesterday.`);
+            setConversation([
+              ...conversation,
+              {
+                speaker: defaultValues.name,
+                message: prompt,
+                time: formattedDate,
+              },
+              {
+                speaker: defaultValues.aiName,
+                message: `You have walked 0 meters yesterday.`,
+                time: formattedDate,
+              },
+            ]);
+          }
+        });
+      } else if (prompt.toLowerCase().includes('average')) {
+        // Parse date range from user input
+        const dateRegex =
+          /average from ([a-zA-Z]+\s\d{1,2},\s\d{4}) to ([a-zA-Z]+\s\d{1,2},\s\d{4})/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const startDate = new Date(match[1]);
+          const endDate = new Date(match[2]);
+          if (startDate && endDate) {
+            calculateAverage(
+              'Distance',
+              'distance',
+              startDate,
+              endDate,
+              average => {
+                setApiResponse(
+                  `Your average distance from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                    average,
+                  )} meters.`,
+                );
+                setConversation([
+                  ...conversation,
+                  {
+                    speaker: defaultValues.name,
+                    message: prompt,
+                    time: formattedDate,
+                  },
+                  {
+                    speaker: defaultValues.aiName,
+                    message: `Your average distance from ${startDate.toDateString()} to ${endDate.toDateString()} was ${Math.round(
+                      average,
+                    )} meters.`,
+                    time: formattedDate,
+                  },
+                ]);
+              },
+            );
+          } else {
+            setApiResponse(
+              'Sorry, I did not understand the date range. Please use the format "Month Day, Year".',
+            );
+          }
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+        }
+      } else if (prompt.toLowerCase().includes('on')) {
+        // Retrieve distance for a specific date
+
+        const dateRegex =
+          /on ([a-zA-Z]+) (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})?/i;
+        const match = prompt.match(dateRegex);
+        if (match) {
+          const month = monthNames.indexOf(match[1].toLowerCase());
+          const day = parseInt(match[2], 10);
+          const year = match[3]
+            ? parseInt(match[3], 10)
+            : new Date().getFullYear(); // If year is not specified, use current year
+          const selectedDate = new Date(year, month, day);
+
+          retrieveData('Distance', distance => {
+            const selectedDateDistance = distance.find(distance =>
+              isSameDay(new Date(distance.date), selectedDate),
+            );
+            if (selectedDateDistance) {
+              setApiResponse(
+                `You have walked ${Math.round(
+                  selectedDateDistance.distance,
+                )} meters on ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `You have walked ${Math.round(
+                    selectedDateDistance.distance,
+                  )} meters on ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            } else {
+              setApiResponse(
+                `No distance data available for ${selectedDate.toDateString()}.`,
+              );
+              setConversation([
+                ...conversation,
+                {
+                  speaker: defaultValues.name,
+                  message: prompt,
+                  time: formattedDate,
+                },
+                {
+                  speaker: defaultValues.aiName,
+                  message: `No distance data available for ${selectedDate.toDateString()}.`,
+                  time: formattedDate,
+                },
+              ]);
+            }
+          });
+        } else {
+          setApiResponse('Sorry, I did not understand your question.');
+        }
+      } else {
+        setApiResponse('Sorry, I did not understand your question.');
+      }
+
+      setIsLoading(false);
+      setIsListening(false);
+      setPrompt('');
+
+      return;
     }
+
     /////
 
     try {

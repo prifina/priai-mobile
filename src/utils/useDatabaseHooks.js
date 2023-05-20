@@ -35,28 +35,33 @@ const useDatabaseHooks = () => {
 
   useEffect(() => {
     // deleteTable('Calories');
+    // deleteTable('Distance');
+    // deleteTable('Steps');
     createTable('Steps', 'steps');
     createTable('Calories', 'calories');
+    createTable('Distance', 'distance');
   }, []);
 
   const createTable = (tableName, columnName) => {
     db.transaction(tx => {
       tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, ${columnName} DECIMAL);`,
+        `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, ${columnName} REAL);`,
       );
     });
   };
-
   const insertData = (tableName, columnName, date, value) => {
+    const roundedValue = value.toFixed(2);
+
     db.transaction(tx => {
       tx.executeSql(
         `INSERT INTO ${tableName} (${columnName}, date) VALUES (?, ?)`,
-        [value, date],
+        [roundedValue, date],
         (_, result) => {
           console.log('Data inserted successfully', result);
         },
         (_, error) => {
           console.log('Error inserting data:', error);
+          console.log('Error message:', error.message);
         },
       );
     });
