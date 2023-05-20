@@ -1,12 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {View, Text, Button} from 'react-native';
+import {View, Text, Button, TouchableOpacity} from 'react-native';
+
+import WebView from 'react-native-webview';
 
 const PrivacyRoadmap = ({navigation}) => {
   return (
     <>
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Text>PrivacyRoadmap</Text>
-      </View>
+      <WebView source={{uri: 'https://beta.prifina.com/privacy-policy.html'}} />
     </>
   );
 };

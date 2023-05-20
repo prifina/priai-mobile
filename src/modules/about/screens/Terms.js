@@ -1,12 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {View, Text, Button} from 'react-native';
 
+import WebView from 'react-native-webview';
+
 const Terms = ({navigation}) => {
   return (
     <>
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Text>Terms</Text>
-      </View>
+      <WebView source={{uri: 'https://beta.prifina.com/terms-of-use.html'}} />
     </>
   );
 };
