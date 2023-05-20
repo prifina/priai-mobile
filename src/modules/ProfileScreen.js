@@ -178,13 +178,13 @@ const ProfileScreen = ({navigation}) => {
             <Text style={{fontSize: 16, fontWeight: 600, marginLeft: 16}}>
               Apple Health
             </Text>
-            <View style={styles.buttonBadge}>
+            {/* <View style={styles.buttonBadge}>
               {isAuthorized ? (
                 <Text style={{color: '#027A48'}}>Active</Text>
               ) : (
                 <Text style={{color: 'red'}}>Inactive</Text>
               )}
-            </View>
+            </View> */}
           </View>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <TouchableOpacity onPress={checkHKStatus}>
@@ -197,7 +197,7 @@ const ProfileScreen = ({navigation}) => {
                 Sync
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={openHealthKitPermissionsScreen}
               style={{marginLeft: 12}}>
               <Text
@@ -208,7 +208,7 @@ const ProfileScreen = ({navigation}) => {
                 }}>
                 Manage
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
         <View style={styles.newSourcesContainer}>
