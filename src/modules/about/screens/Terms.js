@@ -3,6 +3,7 @@ import {View, Text, Button} from 'react-native';
 
 import WebView from 'react-native-webview';
 
+
 const Terms = ({navigation}) => {
   return (
     <>
