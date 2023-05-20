@@ -118,9 +118,9 @@ const ThreadsScreen = ({navigation}) => {
     };
 
     const handleThreadPress = () => {
-      if (!swiping) {
+      // if (!swiping) {
         handleThreadSelect(item);
-      }
+      // }
     };
 
     return (
@@ -128,11 +128,12 @@ const ThreadsScreen = ({navigation}) => {
         ref={swipeableRow}
         renderRightActions={renderRightActions}
         renderLeftActions={renderLeftActions}
-        onSwipeableWillOpen={() => setSwiping(true)}
-        onSwipeableWillClose={() => setSwiping(false)}
-        onSwipeableRightOpen={() => handleSwipeFromLeftToRight(swipeableRow)}
-        onSwipeableLeftOpen={() => handleSwipeFromRightToLeft(swipeableRow)}
-        overshootFriction={8}
+        // onSwipeableWillOpen={() => setSwiping(true)}
+        // onSwipeableWillClose={() => setSwiping(false)}
+        // onSwipeableRightOpen={() => handleSwipeFromLeftToRight(swipeableRow)}
+        // onSwipeableLeftOpen={() => handleSwipeFromRightToLeft(swipeableRow)}
+        // overshootFriction={8}
+        // friction={2}
         useNativeAnimations>
         <TouchableOpacity onPress={handleThreadPress}>
           <View style={styles.threadItem}>
