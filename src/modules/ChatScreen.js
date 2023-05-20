@@ -199,6 +199,27 @@ For any questions that requires access to my personal data, if the data itself i
   const handleSubmit = async () => {
     setIsLoading(true);
 
+    try {
+      const newNumberOfPrompts = numberOfPrompts + 1;
+      setNumberOfPrompts(newNumberOfPrompts);
+      await AsyncStorage.setItem(
+        'numberOfPrompts',
+        newNumberOfPrompts.toString(),
+      );
+
+      if (numberOfPrompts === shareCount) {
+        setQuota(true);
+        Alert.alert(
+          'Alert',
+          'No more answers left!',
+          [{text: 'OK', onPress: () => console.log('OK pressed')}],
+          {cancelable: false},
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
     if (prompt.toLowerCase().includes('steps')) {
       if (prompt.toLowerCase().includes('today')) {
         retrieveData('Steps', steps => {
@@ -974,26 +995,6 @@ For any questions that requires access to my personal data, if the data itself i
     setPrompt('');
 
     ///number of prompts asked
-    try {
-      const newNumberOfPrompts = numberOfPrompts + 1;
-      setNumberOfPrompts(newNumberOfPrompts);
-      await AsyncStorage.setItem(
-        'numberOfPrompts',
-        newNumberOfPrompts.toString(),
-      );
-
-      if (numberOfPrompts === shareCount) {
-        setQuota(true);
-        Alert.alert(
-          'Alert',
-          'No more answers left!',
-          [{text: 'OK', onPress: () => console.log('OK pressed')}],
-          {cancelable: false},
-        );
-      }
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   ////=========////=========////=========////=========////=========////=========////=========////=========////========= siri
