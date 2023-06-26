@@ -10,6 +10,7 @@ import {
   TextInput,
   Switch,
   KeyboardAvoidingView,
+  NativeModules,
 } from 'react-native';
 import {useHeaderHeight} from '@react-navigation/elements';
 
@@ -85,57 +86,51 @@ const ProfileScreen = ({navigation}) => {
     });
   }, [navigation, isVisible]);
 
-  const openAppPrivacySettings = () => {
-    const packageName = 'org.reactjs.native.example.priai';
-    const scheme =
-      Platform.OS === 'ios' ? 'app-settings://' : `package:${packageName}`;
-    const url = `${scheme}privacy`;
-
-    Linking.openURL(url);
-  };
-
-  const deviceHeight = useHeaderHeight();
-
-  const openHealthKitPermissionsScreen = async () => {
-    try {
-      const authStatus = await AppleHealthKit.getAuthStatus({
-        permissions: {
-          read: ['Height', 'Weight', 'StepCount'], // Add the necessary read permissions here
-          write: ['Height', 'Weight'], // Add the necessary write permissions here
-        },
-      });
-
-      if (authStatus === 'unknown' || authStatus === 'denied') {
-        // Open the HealthKit permissions screen
-        await AppleHealthKit.requestPermissions({
-          permissions: {
-            read: ['Height', 'Weight', 'StepCount'], // Add the necessary read permissions here
-            write: ['Height', 'Weight'], // Add the necessary write permissions here
-          },
-        });
-      } else if (authStatus === 'restricted') {
-        // Handle restricted access
-        console.log('HealthKit access is restricted.');
-      } else if (authStatus === 'authorized') {
-        // HealthKit is already authorized
-        console.log('HealthKit access is already authorized.');
-      }
-    } catch (error) {
-      // Handle error
-      console.log('Error:', error);
-    }
-  };
-
   const handleSwitchDemoMode = () => {
     setDemo(!demo);
   };
 
   console.log('DEMO', demo);
 
+  ////==================HEALTHKIT PERMISSIONS
+  const {HealthKitModule} = NativeModules;
+
+  const requestHealthKitPermissions = async () => {
+    try {
+      const permissions = {
+        read: [
+          'HKQuantityTypeIdentifierHeight',
+          'HKQuantityTypeIdentifierWeight',
+        ],
+        write: ['HKQuantityTypeIdentifierDietaryEnergyConsumed'],
+      };
+
+      await HealthKitModule.requestPermissions(permissions);
+      console.log('HealthKit permissions granted');
+    } catch (error) {
+      console.log('Error requesting HealthKit permissions:', error);
+    }
+  };
+  const openPermissionsScreen = () => {
+    const permissions = [
+      'Height',
+      'Weight',
+      'StepCount',
+      'DateOfBirth',
+      'BodyMassIndex',
+    ];
+
+    HealthKitModule.requestPermissions(permissions)
+      .then(result => {
+        console.log('HealthKit permissions:', result);
+      })
+      .catch(error => {
+        console.log('Error requesting HealthKit permissions:', error);
+      });
+  };
+
   return (
-    <KeyboardAvoidingView
-      behavior="padding"
-      keyboardVerticalOffset={deviceHeight + 50}>
+    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={50}>
       {toastConfig && (
         <Toast visible={true} {...toastConfig} onDismiss={hideToast} />
       )}
@@ -197,8 +192,8 @@ const ProfileScreen = ({navigation}) => {
                 Sync
               </Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity
-              onPress={openHealthKitPermissionsScreen}
+            <TouchableOpacity
+              onPress={requestHealthKitPermissions}
               style={{marginLeft: 12}}>
               <Text
                 style={{
@@ -208,7 +203,7 @@ const ProfileScreen = ({navigation}) => {
                 }}>
                 Manage
               </Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
         </View>
         <View style={styles.newSourcesContainer}>
